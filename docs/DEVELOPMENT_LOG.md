@@ -1,0 +1,69 @@
+# Development log
+
+A factual record of how this repository got to its current state. It is based on the git history and the work sessions behind it. Times are IST on Sunday 11 Oct 2026. `git log` is the source of truth.
+
+## Tools used
+
+- Editor: VS Code
+- AI assistance: Claude Code (Anthropic) was used for implementation, browser testing and documentation from commit `7cd0fd3` onward. Those commits carry a `Co-Authored-By: Claude` trailer.
+- Reference material: the assignment PDF and the mock `NOvideo_staff_web_callcentre_v9.html`. The mock was used **only as a visual and content reference**. Colours, layout and the kinds of data were studied. Its source code was not copied: all components, styles and mock data here were written for this project.
+
+## Timeline
+
+### `f24f6cd`: Milestone 1, PeerJS browser audio call prototype (11:14)
+
+- Vite + React + TypeScript scaffold. Added `peerjs`, `lucide-react` and `recharts`.
+- A single `CallPanel` component with a random PeerJS ID, call by ID, accept/reject, mute, hang-up and mic error handling. Long-lived objects (`Peer`, `MediaConnection`, `MediaStream`) were in refs.
+
+### `7cd0fd3`: App shell, eight screens, integrated calling (11:34)
+
+- Studied the mock's CSS palette (forest-green sidebar `#123c30`, brand green `#1d9e75`, blue calendar selection, red bell, gold score ring) and its screen contents.
+- Wrote `types.ts` and an original `mockData.ts` with relative dates.
+- Added the `usePersistentState` hook and `AppStateProvider` (screen, calls, messages, tasks, modals).
+- **Refactored `CallPanel` into `CallProvider` + `CallDock`.** The calling logic moved into a context, so any screen can start a call tagged with a lead. Added a duration timer, a ring timeout, a `finishSession` single exit path, and call logging to Recent.
+- Built all eight screens, the Leads and SOP review modals, the sidebar and the top bar.
+- Fixed a `react-hooks/set-state-in-effect` lint error by moving the `connecting` status out of `createPeer`.
+- Added `React.lazy` per screen to clear Vite's >500 kB chunk warning. Recharts now loads only with the Dashboard.
+
+### `b3094d8`: Reject/cancel/busy signalling and browser E2E tests (11:48)
+
+- Drove two headless Chrome contexts with fake microphones through a real call. Connect, timer, audio, mute, hang-up and logging all worked.
+- **Found:** when the callee rejected, the caller kept ringing for the full 30s (PeerJS sends no event for this). The same happened in reverse when the caller cancelled.
+- **Fixed** with a short-lived PeerJS `DataConnection` that sends `reject` / `cancel` / `busy`. Measured notice time went from about 30 s to about 0.7 s.
+- **Found:** closing the other tab mid-call took about 18 s to notice (ICE failure).
+- **Fixed** with a `pagehide` handler that closes the call, plus a 5 s grace period on `disconnected`. Measured notice time is now under 1 s.
+- Turned the ad-hoc scripts into `e2e/ui.e2e.cjs` and `e2e/calling.e2e.cjs` (`puppeteer-core` with the installed Chrome).
+- Layout fixes found in screenshots:
+  - the menu button showed on desktop (CSS order)
+  - calendar cells were too tall
+  - the CSAT axis label was clipped
+  - the channel auto-scroll moved the whole page
+
+### `9a06e19`: Phone layout polish (11:49)
+
+- Kept the rank pill visible on phones, put the nav drawer above the call dock, and moved the toast to the top so it no longer covers the dock.
+
+### `62b0919`: Never lose an untagged call (11:51)
+
+- **Found in code review:** if a new call arrived while the outcome picker was still showing, the dock hid Accept/Reject, and the previous call's record could be overwritten.
+- **Fixed:** `flushWrapUp()` logs any pending record before a new call starts or when the dock is closed. The dock shows the picker only when idle.
+
+### Documentation commit
+
+- Wrote README, ARCHITECTURE, CODE_WALKTHROUGH, CALLING_GUIDE, FEATURE_STATUS, INTERVIEW_PREP and this log.
+- Checked the PeerJS 1.5.5 default ICE config in `node_modules`: Google STUN plus PeerJS public TURN. The docs were corrected to match.
+
+## Test runs recorded during development
+
+- `npm run lint`: 0 problems
+- `npm run build`: passes, no chunk warnings
+- `npm run test:e2e`: 12/12 UI steps and 13/13 calling steps passed on the last run before the documentation commit
+
+## Things deliberately left out
+
+- AI voice calling (optional; needs server-side secrets)
+- URL routing
+- Unit tests
+- A self-hosted signalling server
+
+These are listed with reasons in [FEATURE_STATUS.md](FEATURE_STATUS.md).
