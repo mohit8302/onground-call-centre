@@ -4,6 +4,8 @@ This is a rebuild of the On-Ground.ai call-centre staff app in React, TypeScript
 
 There is no backend. Everything you change in the demo is kept in `localStorage`: messages you send, tasks you tick, calls you make and outcomes you log.
 
+**New here?** Start with [docs/PROJECT_GUIDE.md](docs/PROJECT_GUIDE.md), a one-page overview of the project.
+
 ## Quick start
 
 ```bash
