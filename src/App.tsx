@@ -3,6 +3,7 @@ import AppStateProvider from './state/AppStateProvider'
 import { useAppState } from './state/appContext'
 import CallProvider from './calling/CallProvider'
 import CallDock from './calling/CallDock'
+import CallLauncher from './calling/CallLauncher'
 import Sidebar from './components/Sidebar'
 import TopBar from './components/TopBar'
 import LeadsModal from './components/LeadsModal'
@@ -47,6 +48,7 @@ function Shell() {
         </div>
       </div>
       <CallDock />
+      <CallLauncher />
       <LeadsModal />
       <SopReviewModal />
       {toast && <div className="toast" role="status">{toast}</div>}

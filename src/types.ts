@@ -145,3 +145,18 @@ export interface TaskItem {
   detail: string
   leadId?: string
 }
+
+/** A recording-consent answer captured by the agent (see ConsentModal). */
+export interface ConsentRecord {
+  /** Shown to the agent, e.g. CNS-MV3K9Q. */
+  id: string
+  name: string
+  leadId?: string
+  peerId?: string
+  method: 'verbal' | 'whatsapp'
+  result: 'yes' | 'no'
+  language: string
+  /** True when a parent/guardian answered for an under-18 customer. */
+  guardian: boolean
+  at: string
+}

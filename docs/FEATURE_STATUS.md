@@ -23,6 +23,7 @@ Legend:
 | 7 | Pulse channel: back, header, pinned Needs-your-input with options + reply box, bubbles with times, working composer | ✅ | E2E, Visual |
 | 8 | Leads modal: lead card, ICP score, intent score, collapsible ICP breakdown / journey / buying signals, prev/next, cumulative missed | ✅ | E2E, Visual |
 | — | Shell: dark-green sidebar with Plan sub-items, top bar with OG logo, bell, OG Score ring 76 + rank #3, avatar | ✅ | E2E, Visual |
+| — | Floating call launcher (DEMO · In-app call · Phone call · consent shield), bottom centre on every screen | ✅ | E2E (on-screen on all 7 nav screens at 1280/390/360px, no overflow), Visual |
 
 ## Bonus items
 
@@ -55,6 +56,10 @@ Legend:
 | Other tab closed mid-call | ✅ | E2E |
 | Signalling lost → Offline + Reconnect | ✅ code path | 🟡 Not exercised automatically (would need the network cut mid-test) |
 | Calls linked to leads ("Place call", "Call back") and logged to Recent with outcome | ✅ | E2E |
+| Launcher "In-app call" opens the same dock (one Peer, one audio element) and shows Calling/Incoming/timer | ✅ | E2E |
+| Launcher "Phone call" | 🟡 By design | Explains PSTN isn't configured and offers an in-app call. Nothing is dialled. E2E checks this. |
+| Recording consent (script in 3 languages, verbal yes/no → Consent ID, under-18 guardian flag) | ✅ local only | E2E. Stored in localStorage only; no recording exists. |
+| Consent via WhatsApp | ❌ | Shown, but Send is disabled: WhatsApp Business isn't connected |
 | Outcome picker after a connected call | ✅ | E2E |
 
 ## Not done / out of scope

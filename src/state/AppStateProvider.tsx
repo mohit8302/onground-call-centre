@@ -3,7 +3,7 @@ import type { ReactNode } from 'react'
 import { AGENT_PROFILE, CHANNELS, DEMO_RECENT_CALLS, LEADS } from '../data/mockData'
 import { clearPersistedState, usePersistentState } from '../lib/usePersistentState'
 import { makeId, nowClock } from '../lib/format'
-import type { CallRecord, ChatMessage, ScreenId } from '../types'
+import type { CallRecord, ChatMessage, ConsentRecord, ScreenId } from '../types'
 import { AppStateContext } from './appContext'
 import type { AppStateApi } from './appContext'
 
@@ -18,6 +18,7 @@ export default function AppStateProvider({ children }: { children: ReactNode }) 
   const [sentMessages, setSentMessages] = usePersistentState<Record<string, ChatMessage[]>>(`${STATE_VERSION}:messages`, {})
   const [needsInputAnswers, setNeedsInputAnswers] = usePersistentState<Record<string, string>>(`${STATE_VERSION}:needs-input`, {})
   const [completedTasks, setCompletedTasks] = usePersistentState<string[]>(`${STATE_VERSION}:tasks`, [])
+  const [consents, setConsents] = usePersistentState<ConsentRecord[]>(`${STATE_VERSION}:consents`, [])
 
   const [leadsModalIndex, setLeadsModalIndex] = useState<number | null>(null)
   const [sopReviewCallId, setSopReviewCallId] = useState<string | null>(null)
@@ -88,6 +89,11 @@ export default function AppStateProvider({ children }: { children: ReactNode }) 
     [setNeedsInputAnswers, sendMessage],
   )
 
+  const addConsent = useCallback(
+    (record: ConsentRecord) => setConsents((all) => [record, ...all]),
+    [setConsents],
+  )
+
   const toggleTask = useCallback(
     (taskId: string) =>
       setCompletedTasks((done) => (done.includes(taskId) ? done.filter((id) => id !== taskId) : [...done, taskId])),
@@ -107,8 +113,10 @@ export default function AppStateProvider({ children }: { children: ReactNode }) 
     setSentMessages({})
     setNeedsInputAnswers({})
     setCompletedTasks([])
+    setConsents([])
     showToast('Demo data reset')
-  }, [setScreen, setActiveChannelId, setRecentCalls, setSentMessages, setNeedsInputAnswers, setCompletedTasks, showToast])
+  }, [setScreen, setActiveChannelId, setRecentCalls, setSentMessages, setNeedsInputAnswers, setCompletedTasks, setConsents,
+    showToast])
 
   const api = useMemo<AppStateApi>(
     () => ({
@@ -122,6 +130,8 @@ export default function AppStateProvider({ children }: { children: ReactNode }) 
       sendMessage,
       needsInputAnswers,
       answerNeedsInput,
+      consents,
+      addConsent,
       completedTasks,
       toggleTask,
       leadsModalIndex,
@@ -134,7 +144,7 @@ export default function AppStateProvider({ children }: { children: ReactNode }) 
       resetDemo,
     }),
     [screen, navigate, activeChannelId, openChannel, recentCalls, addCall, messagesFor, sendMessage, needsInputAnswers,
-      answerNeedsInput, completedTasks, toggleTask, leadsModalIndex, openLeadsModal, sopReviewCallId, toast, showToast,
+      answerNeedsInput, consents, addConsent, completedTasks, toggleTask, leadsModalIndex, openLeadsModal, sopReviewCallId, toast, showToast,
       resetDemo],
   )
 

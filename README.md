@@ -51,6 +51,12 @@ See [docs/CALLING_GUIDE.md](docs/CALLING_GUIDE.md) for details, troubleshooting 
 
 Shell: dark-green sidebar with Plan sub-items. The top bar has the OG logo, live phone status, a notification bell with dropdown, an OG Score ring (76) with rank #3, and a profile menu with **Reset demo data**. Under 860px the sidebar becomes a slide-in drawer.
 
+**Call launcher.** A floating pill at the bottom centre of every screen. It has four parts:
+- **DEMO:** a status badge, not a button.
+- **In-app call:** opens the browser phone. During a call it shows the live state or timer.
+- **Phone call:** explains that phone-number calling isn't set up and offers an in-app call instead. It never dials anything.
+- **Shield:** the "Ask before you record" consent dialog. It has the script in ಕನ್ನಡ / हिन्दी / English. A "said out loud" answer is logged with a Consent ID. The shield turns green only when the current call's customer has said yes.
+
 ## Tech
 
 - React 19, TypeScript, Vite 8
@@ -88,6 +94,7 @@ docs/                     architecture, walkthrough, calling guide, status
 ## Known limitations
 
 - Calls use PeerJS's defaults: the free public signalling server (`0.peerjs.com`), Google STUN, and PeerJS's free public TURN relays. These are best-effort shared services with no uptime guarantee, and some strict networks may still block calls. See [CALLING_GUIDE](docs/CALLING_GUIDE.md#limitations).
-- The "customer" in a call is another browser running this app. There is no phone-network (PSTN) dialling.
+- The "customer" in a call is another browser running this app. There is no phone-network (PSTN) dialling: the **Phone call** button says so instead of pretending.
+- Recording consent is logged in the browser only. The WhatsApp consent request is shown but disabled, because WhatsApp Business isn't connected. Calls are not recorded either way. The Kannada and Hindi consent scripts should be checked by native speakers.
 - SOP scores, AvaniBot and agents are demo content. No AI model is called anywhere. The daily brief is computed from local data and says so.
 - Live calls are not recorded or transcribed, so they have no SOP checklist.

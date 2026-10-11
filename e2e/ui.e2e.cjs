@@ -41,6 +41,11 @@ async function go(page, label) {
           await go(page, label)
           const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)
           assert.ok(overflow <= 0, `${label} @${width}px overflows by ${overflow}px`)
+          const pill = await page.$eval('.call-launcher', (el) => {
+            const r = el.getBoundingClientRect()
+            return { left: r.left, right: r.right, bottom: r.bottom, vw: window.innerWidth, vh: window.innerHeight }
+          })
+          assert.ok(pill.left >= 0 && pill.right <= pill.vw && pill.bottom <= pill.vh, `${label} @${width}px: launcher off-screen`)
         }
       }
       await page.setViewport({ width: 1280, height: 900 })
@@ -136,6 +141,38 @@ async function go(page, label) {
       }
       assert.ok(peak > 0, 'fake microphone should produce a level')
       await clickText(page, '.btn', 'Stop mic check')
+    }],
+    ['launcher: DEMO is a status badge, In-app call opens the existing phone dock', async () => {
+      assert.equal(await page.$eval('.demo-badge', (e) => e.tagName), 'SPAN')
+      await clickText(page, '.launcher-btn', 'In-app call')
+      await page.waitForSelector('.call-dock')
+      assert.equal((await page.$$('.call-dock')).length, 1)
+      assert.equal((await page.$$('audio')).length, 1, 'still exactly one remote-audio element')
+      await page.click('.call-dock-head .icon-btn')
+    }],
+    ['launcher: Phone call says PSTN is not set up and dials nothing', async () => {
+      await clickText(page, '.launcher-btn', 'Phone call')
+      await page.waitForSelector('.unavailable')
+      assert.match(await textOf(page, '.unavailable'), /isn.t set up/)
+      await clickText(page, '.modal-foot .btn', 'Use in-app call')
+      await page.waitForSelector('.call-dock')
+      await page.click('.call-dock-head .icon-btn')
+    }],
+    ['launcher: consent shield logs a verbal yes with a Consent ID', async () => {
+      assert.match(await page.$eval('.launcher-shield', (e) => e.getAttribute('aria-label')), /no call selected/)
+      assert.equal(await page.$('.launcher-shield.ok'), null)
+      await page.click('.launcher-shield')
+      await page.waitForSelector('.consent-script')
+      await clickText(page, '.consent-script .chip', 'हिन्दी')
+      assert.match(await textOf(page, '.consent-script p'), /रिकॉर्ड/)
+      assert.ok(await page.$eval('.consent-wa button[type=submit]', (b) => b.disabled), 'WhatsApp send must be disabled')
+      await clickText(page, '.segmented button', 'Said out loud')
+      await clickText(page, '.consent-step .btn', 'They said yes')
+      assert.match(await textOf(page, '.consent-saved'), /CNS-[A-Z0-9]+/)
+      const stored = await page.evaluate(() => JSON.parse(localStorage.getItem('og-callcentre:v1:consents')))
+      assert.equal(stored[0].result, 'yes')
+      assert.equal(stored[0].method, 'verbal')
+      await page.keyboard.press('Escape')
     }],
     ['reset demo data restores the defaults', async () => {
       await page.click('[aria-label="Profile menu"]')

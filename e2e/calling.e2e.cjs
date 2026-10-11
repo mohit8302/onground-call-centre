@@ -20,8 +20,8 @@ const inboundAudioBytes = (page) =>
     return bytes
   })
 
-async function openPhone(page) {
-  await page.click('.phone-chip')
+async function openPhone(page, via = '.phone-chip') {
+  await page.click(via)
   await page.waitForFunction(() => /^onground-/.test(document.querySelector('.peer-id')?.textContent ?? ''), {
     timeout: 20000,
   })
@@ -46,7 +46,7 @@ async function dial(page, peerId) {
       ;[A, B, C] = await Promise.all(['A', 'B', 'C'].map((n) => openApp(browser, server.url, n, errors)))
       ids.A = await openPhone(A)
       ids.B = await openPhone(B)
-      ids.C = await openPhone(C)
+      ids.C = await openPhone(C, '.call-launcher .launcher-btn') // the bottom launcher opens the same dock
       assert.equal(await status(A), 'Ready')
     }],
     ['calling an unknown ID shows a clear error', async () => {
@@ -63,10 +63,22 @@ async function dial(page, peerId) {
       await clickText(A, '.lead-row-body button', 'Place call')
       assert.match(await textOf(A, '.call-target'), /Mukunda R\./)
     }],
+    ['consent shield turns green only after a yes for this lead', async () => {
+      assert.match(await A.$eval('.launcher-shield', (e) => e.getAttribute('aria-label')), /Mukunda R\.: not asked yet/)
+      assert.equal(await A.$('.launcher-shield.ok'), null)
+      await A.click('.launcher-shield')
+      await A.waitForSelector('.consent-script')
+      assert.match(await textOf(A, '.modal-subtitle'), /Mukunda R\./)
+      await clickText(A, '.segmented button', 'Said out loud')
+      await clickText(A, '.consent-step .btn', 'They said yes')
+      await A.keyboard.press('Escape')
+      assert.ok(await A.$('.launcher-shield.ok'))
+    }],
     ['outgoing call rings on the other side, accept connects both', async () => {
       await dial(A, ids.B)
       await waitStatus(B, 'Incoming')
       assert.equal(await status(A), 'Calling…')
+      assert.match(await textOf(B, '.call-launcher .launcher-btn'), /Incoming/)
       await clickText(B, '.call-dock button', 'Accept')
       await Promise.all([A.waitForSelector('.call-timer', { timeout: 20000 }), B.waitForSelector('.call-timer', { timeout: 20000 })])
     }],
@@ -74,6 +86,10 @@ async function dial(page, peerId) {
       await sleep(3200)
       assert.ok((await textOf(A, '.call-timer')) >= '00:03', 'A timer should be at least 00:03')
       assert.match(await textOf(A, '.phone-chip'), /00:0\d/)
+      assert.match(await textOf(A, '.call-launcher .launcher-btn'), /00:0\d/)
+      // Opening the dock from the launcher mid-call must not disturb the call.
+      await A.click('.call-launcher .launcher-btn')
+      assert.ok(await A.$('.call-timer'))
       assert.ok((await inboundAudioBytes(A)) > 0, 'A should receive audio')
       assert.ok((await inboundAudioBytes(B)) > 0, 'B should receive audio')
     }],

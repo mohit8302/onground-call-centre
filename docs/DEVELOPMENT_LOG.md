@@ -53,11 +53,33 @@ A factual record of how this repository got to its current state. It is based on
 - Wrote README, ARCHITECTURE, CODE_WALKTHROUGH, CALLING_GUIDE, FEATURE_STATUS, INTERVIEW_PREP and this log.
 - Checked the PeerJS 1.5.5 default ICE config in `node_modules`: Google STUN plus PeerJS public TURN. The docs were corrected to match.
 
+### Floating call launcher
+
+- **Asked for:** the bottom-centre pill from the reference screenshots (DEMO · In-app call · Phone call · shield).
+- **Checked first:** the existing `CallDock` is the expanded phone panel. No PSTN code exists. The shield in the reference opens an "Ask before you record" consent flow, and the app had no recording or consent state.
+- **Added** `src/calling/CallLauncher.tsx`. It only calls the existing `openDialer`, so there is no second Peer or audio element. The E2E test asserts exactly one `<audio>`.
+- **Added** `src/components/PhoneCallModal.tsx`. It says plainly that phone-number calling isn't set up and offers the in-app call.
+- **Added** `src/components/ConsentModal.tsx` and a persisted `consents` list in app state:
+  - consent script in Kannada, Hindi and English
+  - "Said out loud" yes/no logged with a `CNS-…` Consent ID
+  - under-18 guardian flag
+  - the WhatsApp path is visible but disabled, with an explanation
+- The shield turns green only when a "yes" is on record for the current call target.
+- **Layout:**
+  - added a `--launcher-space` token
+  - the expanded dock, the channel composer and the page padding now sit above the pill
+  - the pill centres on the content column when the sidebar is visible, and respects safe-area insets (`viewport-fit=cover`)
+- **Layering:** content < launcher (140) < dock (150) < drawer (170) < modals (200) < toast (300).
+- **E2E:**
+  - the UI suite checks that the pill is on-screen for every screen at 1280/390/360px, and covers its three actions
+  - the calling suite opens one agent's phone from the launcher, checks that the launcher shows Incoming and the timer, and checks the consent shield's green state
+
 ## Test runs recorded during development
 
 - `npm run lint`: 0 problems
 - `npm run build`: passes, no chunk warnings
 - `npm run test:e2e`: 12/12 UI steps and 13/13 calling steps passed on the last run before the documentation commit
+- After the launcher: 15/15 UI steps and 14/14 calling steps passed
 
 ## Things deliberately left out
 

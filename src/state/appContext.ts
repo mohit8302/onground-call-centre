@@ -1,5 +1,5 @@
 import { createContext, useContext } from 'react'
-import type { CallRecord, ChatMessage, ScreenId } from '../types'
+import type { CallRecord, ChatMessage, ConsentRecord, ScreenId } from '../types'
 
 export interface AppStateApi {
   screen: ScreenId
@@ -14,6 +14,9 @@ export interface AppStateApi {
   sendMessage: (channelId: string, text: string) => void
   needsInputAnswers: Record<string, string>
   answerNeedsInput: (channelId: string, answer: string) => void
+
+  consents: ConsentRecord[]
+  addConsent: (record: ConsentRecord) => void
 
   completedTasks: string[]
   toggleTask: (taskId: string) => void

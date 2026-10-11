@@ -100,7 +100,7 @@ It needs internet access for the signalling server.
 - **Public infrastructure.** `0.peerjs.com` and the PeerJS TURN relays are free shared services with no uptime guarantee. For production, run your own [PeerServer](https://github.com/peers/peerjs-server) and TURN server (e.g. coturn), and pass them via `new Peer(id, { host, port, path, config: { iceServers } })`.
 - **IDs are not accounts.** Anyone who knows an ID can call it. There is no authentication or directory. In production the IDs would come from the backend, tied to staff and lead records.
 - **New ID on every reload.** This is deliberate: PeerJS keeps an ID reserved for a while after disconnect, so reusing it right after a refresh fails with `unavailable-id`.
-- **No PSTN.** You can't dial a real phone number. That would need a telephony provider (Twilio, Exotel, …).
+- **No PSTN.** You can't dial a real phone number. That would need a telephony provider (Twilio, Exotel, …). The launcher's **Phone call** button says this and offers an in-app call instead.
 - **No recording or transcription,** so live calls show "no SOP checklist" in the SOP review.
 - **One call at a time.** A second incoming call is auto-rejected with `busy`, and logged as missed.
 - The live call state is not persisted. Reloading mid-call ends the call. The other side is told via `pagehide`.
