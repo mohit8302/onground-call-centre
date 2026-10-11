@@ -1,0 +1,87 @@
+.app {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 32px 16px;
+}
+
+.call-panel {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.call-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.label {
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.call-row input {
+  flex: 1;
+  min-width: 200px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font: inherit;
+}
+
+.btn,
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text-h);
+  font: inherit;
+  cursor: pointer;
+}
+
+.icon-btn {
+  padding: 6px 8px;
+}
+
+.btn:disabled,
+.icon-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-green {
+  background: #16a34a;
+  border-color: #16a34a;
+  color: #fff;
+}
+
+.btn-red {
+  background: #dc2626;
+  border-color: #dc2626;
+  color: #fff;
+}
+
+.status {
+  font-weight: 600;
+}
+
+.status-ringing {
+  color: #d97706;
+}
+
+.status-in-call {
+  color: #16a34a;
+}
+
+.error {
+  color: #dc2626;
+}
