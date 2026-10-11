@@ -4,6 +4,8 @@ This is a rebuild of the On-Ground.ai call-centre staff app in React, TypeScript
 
 There is no backend. Everything you change in the demo is kept in `localStorage`: messages you send, tasks you tick, calls you make and outcomes you log.
 
+**Live demo:** https://onground-call-centre-tau.vercel.app/ (it's served over HTTPS, so calls also work between a laptop and a phone).
+
 **New here?** Start with [docs/PROJECT_GUIDE.md](docs/PROJECT_GUIDE.md), a one-page overview of the project.
 
 ## Quick start
@@ -67,6 +69,46 @@ Shell: dark-green sidebar with Plan sub-items. The top bar has the OG logo, live
 - Lucide React, for icons
 - Plain CSS with custom properties (`src/index.css` tokens, `src/App.css` components)
 - No router or state library: screen state lives in a small context ([why](docs/ARCHITECTURE.md#decisions))
+
+**Why this stack:**
+- **React + TypeScript**, which the brief prefers. Typed lead, call and channel models catch mistakes across 8 screens.
+- **Vite**, for a fast dev server and a small static build that deploys anywhere.
+- **PeerJS**, which handles WebRTC signalling, so the effort went into call handling rather than a signalling server.
+- **Recharts**, because its charts are React components.
+- **Plain CSS**, to keep type sizes and spacing close to the mock without a framework's defaults.
+
+## Done and skipped
+
+**Done:**
+- Every must-build item: shell, Dashboard, Plan (Calls to make, Incoming, Recent), Calendar, Pulse home and channel chat, Leads modal with paging.
+- Every bonus item: sending messages, answering "Needs your input", Practise a call, Call back, phone-width layout, Recharts charts.
+- Extras:
+  - real two-way audio calls (PeerJS/WebRTC), linked to leads and logged to Recent;
+  - a recording-consent step and DPDP explainer;
+  - localStorage persistence;
+  - browser E2E tests.
+
+**Skipped or partial:**
+- Dialling real phone numbers (PSTN), which needs a telephony provider.
+- Call recording and transcription, and with them the mock's live AI assist panel during calls.
+- AI voice calling.
+- Sending the WhatsApp consent request.
+- The mock's settings menu (language, Dev Mode, Industry).
+- Some visual differences from the mock: the KPIs aren't on a navy band, and the CSAT trend is a line chart instead of bars.
+
+See [docs/FEATURE_STATUS.md](docs/FEATURE_STATUS.md) for the full list and how each item was verified.
+
+## AI tools used
+
+- **Claude Code** (Anthropic, Claude Opus), used throughout:
+  - project scaffolding and component code;
+  - the PeerJS calling module;
+  - the puppeteer E2E tests;
+  - debugging (e.g. adding reject/cancel signalling after a test showed the caller kept ringing);
+  - documentation in `docs/`.
+
+  I reviewed, ran and tested the code, and I can walk through any part of it. [docs/INTERVIEW_PREP.md](docs/INTERVIEW_PREP.md) has the reasoning behind the main decisions.
+- No AI model runs inside the app. AvaniBot and SOP scores are demo content from `src/data/mockData.ts`.
 
 ## Project layout
 
