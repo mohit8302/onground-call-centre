@@ -1274,7 +1274,7 @@
 .toast {
   position: fixed;
   left: 50%;
-  bottom: 24px;
+  top: 70px;
   transform: translateX(-50%);
   background: var(--ink);
   color: #fff;
@@ -1309,7 +1309,8 @@
   }
 
   .sidebar:not(.open) { box-shadow: none; }
-  .sidebar.open { transform: none; }
+  .sidebar.open { transform: none; z-index: 170; } /* above the call dock */
+  .scrim { z-index: 165; }
   .main-col { margin-left: 0; }
   .topbar .topbar-menu { display: inline-flex; }
   .topbar { padding: 8px 12px; }
@@ -1320,8 +1321,7 @@
 
 @media (max-width: 600px) {
   .topbar-title,
-  .phone-chip span:not(.phone-dot),
-  .rank-pill { display: none; }
+  .phone-chip span:not(.phone-dot) { display: none; }
   .topbar-right { gap: 6px; }
   .detail-grid,
   .score-tiles { grid-template-columns: minmax(0, 1fr); }

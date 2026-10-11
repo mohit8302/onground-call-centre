@@ -31,7 +31,7 @@ async function go(page, label) {
   const failed = await run('Screens and interactions', [
     ['every screen renders without overflow at desktop and phone width', async () => {
       page = await openApp(browser, server.url, 'ui', errors)
-      for (const width of [1280, 390]) {
+      for (const width of [1280, 390, 360]) {
         await page.setViewport({ width, height: 860 })
         for (const label of Object.keys(SCREENS)) {
           if (width < 860) {
