@@ -82,10 +82,22 @@ export default function CallProvider({ children, onCallLogged }: Props) {
   const ringTimerRef = useRef<number | null>(null)
   const targetRef = useRef<CallTarget | null>(null)
   const onLoggedRef = useRef(onCallLogged)
+  const wrapUpRef = useRef<PendingWrapUp | null>(null)
 
   useEffect(() => {
     onLoggedRef.current = onCallLogged
   }, [onCallLogged])
+
+  const setPendingWrapUp = useCallback((next: PendingWrapUp | null) => {
+    wrapUpRef.current = next
+    setWrapUp(next)
+  }, [])
+
+  /** A new call is starting: save any un-tagged previous call as-is. */
+  const flushWrapUp = useCallback(() => {
+    if (wrapUpRef.current) onLoggedRef.current(wrapUpRef.current.record)
+    setPendingWrapUp(null)
+  }, [setPendingWrapUp])
 
   // Keep the ref in sync so PeerJS listeners see the latest dialer target.
   const setDialTarget = useCallback((t: CallTarget | null) => {
@@ -165,7 +177,8 @@ export default function CallProvider({ children, onCallLogged }: Props) {
 
       if (connected) {
         // Let the agent tag the outcome before it lands in Recent.
-        setWrapUp({ record })
+        flushWrapUp()
+        setPendingWrapUp({ record })
         setDockOpen(true)
       } else {
         onLoggedRef.current(record)
@@ -176,7 +189,7 @@ export default function CallProvider({ children, onCallLogged }: Props) {
       setRemotePeerId('')
       setStatus(peerRef.current && !peerRef.current.disconnected ? 'ready' : 'offline')
     },
-    [clearRingTimer, stopLocalTracks, sendControl],
+    [clearRingTimer, stopLocalTracks, sendControl, flushWrapUp, setPendingWrapUp],
   )
 
   // Listen to a call's lifecycle. Used for both outgoing and incoming calls.
@@ -269,6 +282,7 @@ export default function CallProvider({ children, onCallLogged }: Props) {
         })
         return
       }
+      flushWrapUp()
       sessionRef.current = {
         call,
         direction: 'incoming',
@@ -324,7 +338,7 @@ export default function CallProvider({ children, onCallLogged }: Props) {
     })
 
     return peer
-  }, [attachCallEvents, finishSession, sendControl])
+  }, [attachCallEvents, finishSession, sendControl, flushWrapUp])
 
   useEffect(() => {
     const peer = createPeer()
@@ -352,6 +366,7 @@ export default function CallProvider({ children, onCallLogged }: Props) {
         setError('That is your own ID. Open the app in a second tab or device and call that ID.')
         return
       }
+      flushWrapUp()
       setError('')
       setStatus('calling')
       setRemotePeerId(peerId)
@@ -379,7 +394,7 @@ export default function CallProvider({ children, onCallLogged }: Props) {
         setStatus('ready')
       }
     },
-    [attachCallEvents, finishSession, stopLocalTracks],
+    [attachCallEvents, finishSession, stopLocalTracks, flushWrapUp],
   )
 
   const acceptCall = useCallback(async () => {
@@ -427,11 +442,12 @@ export default function CallProvider({ children, onCallLogged }: Props) {
 
   const finishWrapUp = useCallback(
     (outcome: string | null) => {
-      if (wrapUp) onLoggedRef.current({ ...wrapUp.record, outcome: outcome ?? wrapUp.record.outcome })
-      setWrapUp(null)
+      const pending = wrapUpRef.current
+      if (pending) onLoggedRef.current({ ...pending.record, outcome: outcome ?? pending.record.outcome })
+      setPendingWrapUp(null)
       setDialTarget(null)
     },
-    [wrapUp, setDialTarget],
+    [setPendingWrapUp, setDialTarget],
   )
 
   const openDialer = useCallback(
@@ -445,9 +461,10 @@ export default function CallProvider({ children, onCallLogged }: Props) {
   const closeDock = useCallback(() => {
     // The dock can't be dismissed mid-call; the call UI must stay reachable.
     if (sessionRef.current) return
+    if (wrapUpRef.current) finishWrapUp(null) // closing = skip tagging, still log it
     setDockOpen(false)
     setError('')
-  }, [])
+  }, [finishWrapUp])
 
   const api = useMemo<CallApi>(
     () => ({

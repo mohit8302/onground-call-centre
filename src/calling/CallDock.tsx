@@ -62,7 +62,7 @@ export default function CallDock() {
         </button>
       </div>
 
-      {call.wrapUp ? (
+      {call.wrapUp && !busy ? (
         <div className="call-dock-body">
           <div className="wrap-title">Call ended · {formatDuration(call.wrapUp.record.durationSec)}</div>
           <p className="muted small">How did the call with {call.wrapUp.record.name} go? This is saved to Recent.</p>
