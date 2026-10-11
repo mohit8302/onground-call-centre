@@ -74,6 +74,19 @@ A factual record of how this repository got to its current state. It is based on
   - the UI suite checks that the pill is on-screen for every screen at 1280/390/360px, and covers its three actions
   - the calling suite opens one agent's phone from the launcher, checks that the launcher shows Incoming and the timer, and checks the consent shield's green state
 
+### Shield → DPDP explainer; consent moves in front of calls
+
+- **Feedback:** the shield should open "How this app keeps you DPDP-safe", not the consent step. The consent step belongs to the In-app call and Phone call buttons.
+- **Added** `src/components/DpdpModal.tsx`: the five rules with their DPDP Act 2023 sections.
+  - The reference's wording claimed automatic recording stops, a DPO request flow and a tamper-proof log. None of these exist here.
+  - So each rule carries an "In this app" line saying what is built, and rules 3 and 4 are marked "Not built yet".
+  - The subtitle was changed to "Five rules for every call."
+- **In-app call** now opens the consent step ("Call centre · name"), and **Open in-app call** then opens the dock with the chosen lead as the target.
+- **Phone call** opens the consent step ("Phone call · name"), and **Dial phone number** then shows the not-configured notice.
+- During an active call, ringing call or pending wrap-up, In-app call goes straight to the dock.
+- The shield no longer changes colour.
+- E2E updated: 15/15 UI steps and 14/14 calling steps pass.
+
 ## Test runs recorded during development
 
 - `npm run lint`: 0 problems

@@ -57,8 +57,9 @@ Legend:
 | Signalling lost → Offline + Reconnect | ✅ code path | 🟡 Not exercised automatically (would need the network cut mid-test) |
 | Calls linked to leads ("Place call", "Call back") and logged to Recent with outcome | ✅ | E2E |
 | Launcher "In-app call" opens the same dock (one Peer, one audio element) and shows Calling/Incoming/timer | ✅ | E2E |
-| Launcher "Phone call" | 🟡 By design | Explains PSTN isn't configured and offers an in-app call. Nothing is dialled. E2E checks this. |
-| Recording consent (script in 3 languages, verbal yes/no → Consent ID, under-18 guardian flag) | ✅ local only | E2E. Stored in localStorage only; no recording exists. |
+| Launcher "Phone call" | 🟡 By design | Consent step, then explains PSTN isn't configured and offers an in-app call. Nothing is dialled. E2E checks this. |
+| Launcher shield → "How this app keeps you DPDP-safe" (5 rules, DPDP Act sections) | ✅ | E2E. Rules 3 (stop on withdrawal) and 4 (DPO requests) are labelled "Not built yet" in the dialog itself. |
+| Recording consent before In-app / Phone calls (script in 3 languages, verbal yes/no → Consent ID, under-18 guardian flag; the chosen lead carries into the call) | ✅ local only | E2E. Stored in localStorage only; no recording exists. |
 | Consent via WhatsApp | ❌ | Shown, but Send is disabled: WhatsApp Business isn't connected |
 | Outcome picker after a connected call | ✅ | E2E |
 

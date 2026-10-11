@@ -142,27 +142,11 @@ async function go(page, label) {
       assert.ok(peak > 0, 'fake microphone should produce a level')
       await clickText(page, '.btn', 'Stop mic check')
     }],
-    ['launcher: DEMO is a status badge, In-app call opens the existing phone dock', async () => {
+    ['launcher: In-app call asks for recording consent first, then opens the existing phone dock', async () => {
       assert.equal(await page.$eval('.demo-badge', (e) => e.tagName), 'SPAN')
       await clickText(page, '.launcher-btn', 'In-app call')
-      await page.waitForSelector('.call-dock')
-      assert.equal((await page.$$('.call-dock')).length, 1)
-      assert.equal((await page.$$('audio')).length, 1, 'still exactly one remote-audio element')
-      await page.click('.call-dock-head .icon-btn')
-    }],
-    ['launcher: Phone call says PSTN is not set up and dials nothing', async () => {
-      await clickText(page, '.launcher-btn', 'Phone call')
-      await page.waitForSelector('.unavailable')
-      assert.match(await textOf(page, '.unavailable'), /isn.t set up/)
-      await clickText(page, '.modal-foot .btn', 'Use in-app call')
-      await page.waitForSelector('.call-dock')
-      await page.click('.call-dock-head .icon-btn')
-    }],
-    ['launcher: consent shield logs a verbal yes with a Consent ID', async () => {
-      assert.match(await page.$eval('.launcher-shield', (e) => e.getAttribute('aria-label')), /no call selected/)
-      assert.equal(await page.$('.launcher-shield.ok'), null)
-      await page.click('.launcher-shield')
       await page.waitForSelector('.consent-script')
+      assert.match(await textOf(page, '.modal-subtitle'), /^Call centre · /)
       await clickText(page, '.consent-script .chip', 'हिन्दी')
       assert.match(await textOf(page, '.consent-script p'), /रिकॉर्ड/)
       assert.ok(await page.$eval('.consent-wa button[type=submit]', (b) => b.disabled), 'WhatsApp send must be disabled')
@@ -172,6 +156,31 @@ async function go(page, label) {
       const stored = await page.evaluate(() => JSON.parse(localStorage.getItem('og-callcentre:v1:consents')))
       assert.equal(stored[0].result, 'yes')
       assert.equal(stored[0].method, 'verbal')
+      await clickText(page, '.modal-foot .btn', 'Open in-app call')
+      await page.waitForSelector('.call-dock')
+      assert.equal(await page.$('.modal'), null)
+      assert.equal((await page.$$('.call-dock')).length, 1)
+      assert.equal((await page.$$('audio')).length, 1, 'still exactly one remote-audio element')
+      await page.click('.call-dock-head .icon-btn')
+    }],
+    ['launcher: Phone call asks consent, then says PSTN is not set up and dials nothing', async () => {
+      await clickText(page, '.launcher-btn', 'Phone call')
+      await page.waitForSelector('.consent-script')
+      assert.match(await textOf(page, '.modal-subtitle'), /^Phone call · /)
+      await clickText(page, '.modal-foot .btn', 'Dial phone number')
+      await page.waitForSelector('.unavailable')
+      assert.match(await textOf(page, '.unavailable'), /isn.t set up/)
+      await clickText(page, '.modal-foot .btn', 'Use in-app call')
+      await page.waitForSelector('.call-dock')
+      await page.click('.call-dock-head .icon-btn')
+    }],
+    ['launcher: the shield opens the DPDP explainer, not a call', async () => {
+      await page.click('.launcher-shield')
+      await page.waitForSelector('.dpdp-list')
+      assert.equal(await textOf(page, '.modal-title'), 'How this app keeps you DPDP-safe')
+      assert.equal((await page.$$('.dpdp-list li')).length, 5)
+      assert.equal(await page.$('.consent-script'), null)
+      assert.equal(await page.$('.call-dock'), null)
       await page.keyboard.press('Escape')
     }],
     ['reset demo data restores the defaults', async () => {

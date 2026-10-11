@@ -75,8 +75,11 @@ A changing key remounts the component, which resets local state. Collapsibles cl
 **What does the Phone call button do?**
 It opens a dialog saying phone-number calling isn't set up, and offers the working in-app call. PSTN needs a telephony provider. A button that pretends to dial would be worse than one that says it can't. To add it later, replace the body of `PhoneCallModal`; the launcher doesn't change.
 
+**What happens when I click In-app call or Phone call?**
+A recording-consent step comes first. The agent reads a short script (Kannada / Hindi / English) and logs the customer's spoken yes or no, which gives a Consent ID. Then the call continues: the in-app dock, or the PSTN-not-configured notice. The app doesn't record calls yet, and the WhatsApp request is disabled because nothing is connected.
+
 **What is the shield for?**
-Recording consent. The agent reads a short script (Kannada / Hindi / English) and logs the customer's spoken yes or no. That gives a Consent ID. The shield turns green only when a yes exists for the person on the current call. The app doesn't record calls yet, and the WhatsApp request is disabled because nothing is connected. The consent workflow is ready for when recording is added.
+It opens a DPDP Act 2023 explainer: five rules for agents, with section numbers. Two rules (stopping a recording when consent is withdrawn, and the DPO request flow) aren't built. The dialog says so on each rule instead of implying the app handles them.
 
 **How is "Calls to make" ranked, and how is "Incoming" ranked?**
 Calls to make uses the lead's `attractiveness` score. Incoming uses expected value = `price × intent / 100`. A missed call from a high-value, high-intent lead comes first. Unknown callers show "New contact" with no value.

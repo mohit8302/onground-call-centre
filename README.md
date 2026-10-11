@@ -53,9 +53,9 @@ Shell: dark-green sidebar with Plan sub-items. The top bar has the OG logo, live
 
 **Call launcher.** A floating pill at the bottom centre of every screen. It has four parts:
 - **DEMO:** a status badge, not a button.
-- **In-app call:** opens the browser phone. During a call it shows the live state or timer.
-- **Phone call:** explains that phone-number calling isn't set up and offers an in-app call instead. It never dials anything.
-- **Shield:** the "Ask before you record" consent dialog. It has the script in ಕನ್ನಡ / हिन्दी / English. A "said out loud" answer is logged with a Consent ID. The shield turns green only when the current call's customer has said yes.
+- **In-app call:** first shows the **"Ask before you record"** consent step, then opens the browser phone. The step has the script in ಕನ್ನಡ / हिन्दी / English, and a "said out loud" answer is logged with a Consent ID. During a call the button skips straight to the call controls and shows the live state or timer.
+- **Phone call:** the same consent step, then a notice that phone-number calling isn't set up, with an in-app call offered instead. It never dials anything.
+- **Shield:** opens **"How this app keeps you DPDP-safe"**, five rules with DPDP Act 2023 section references. Each rule says honestly what this build does, and which parts aren't built yet.
 
 ## Tech
 

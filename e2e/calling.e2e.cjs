@@ -20,8 +20,15 @@ const inboundAudioBytes = (page) =>
     return bytes
   })
 
-async function openPhone(page, via = '.phone-chip') {
-  await page.click(via)
+async function openPhone(page, viaLauncher = false) {
+  if (viaLauncher) {
+    // The bottom launcher asks for recording consent first, then opens the same dock.
+    await page.click('.call-launcher .launcher-btn')
+    await page.waitForSelector('.consent-script')
+    await clickText(page, '.modal-foot .btn', 'Open in-app call')
+  } else {
+    await page.click('.phone-chip')
+  }
   await page.waitForFunction(() => /^onground-/.test(document.querySelector('.peer-id')?.textContent ?? ''), {
     timeout: 20000,
   })
@@ -46,7 +53,7 @@ async function dial(page, peerId) {
       ;[A, B, C] = await Promise.all(['A', 'B', 'C'].map((n) => openApp(browser, server.url, n, errors)))
       ids.A = await openPhone(A)
       ids.B = await openPhone(B)
-      ids.C = await openPhone(C, '.call-launcher .launcher-btn') // the bottom launcher opens the same dock
+      ids.C = await openPhone(C, true)
       assert.equal(await status(A), 'Ready')
     }],
     ['calling an unknown ID shows a clear error', async () => {
@@ -63,16 +70,16 @@ async function dial(page, peerId) {
       await clickText(A, '.lead-row-body button', 'Place call')
       assert.match(await textOf(A, '.call-target'), /Mukunda R\./)
     }],
-    ['consent shield turns green only after a yes for this lead', async () => {
-      assert.match(await A.$eval('.launcher-shield', (e) => e.getAttribute('aria-label')), /Mukunda R\.: not asked yet/)
-      assert.equal(await A.$('.launcher-shield.ok'), null)
-      await A.click('.launcher-shield')
+    ['launcher consent step keeps the lead and leads back to the dialer', async () => {
+      await A.click('.call-dock-head .icon-btn')
+      await A.click('.call-launcher .launcher-btn')
       await A.waitForSelector('.consent-script')
-      assert.match(await textOf(A, '.modal-subtitle'), /Mukunda R\./)
+      assert.match(await textOf(A, '.modal-subtitle'), /Call centre · Mukunda R\./)
       await clickText(A, '.segmented button', 'Said out loud')
       await clickText(A, '.consent-step .btn', 'They said yes')
-      await A.keyboard.press('Escape')
-      assert.ok(await A.$('.launcher-shield.ok'))
+      await clickText(A, '.modal-foot .btn', 'Open in-app call')
+      await A.waitForSelector('#peer-input')
+      assert.match(await textOf(A, '.call-target'), /Mukunda R\./)
     }],
     ['outgoing call rings on the other side, accept connects both', async () => {
       await dial(A, ids.B)

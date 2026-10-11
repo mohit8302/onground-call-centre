@@ -1,8 +1,9 @@
 import { useState } from 'react'
-import { Check, Mic, Send, ShieldCheck, X } from 'lucide-react'
+import { Check, Mic, Phone, PhoneForwarded, Send, ShieldCheck, X } from 'lucide-react'
 import { LEADS } from '../data/mockData'
 import { useAppState } from '../state/appContext'
 import { useCall } from '../calling/callContext'
+import type { CallTarget } from '../calling/callContext'
 import { formatWhen } from '../lib/format'
 import { Modal } from './ui'
 
@@ -34,6 +35,9 @@ interface Props {
   /** Which kind of call the consent is for, shown under the title. */
   channel: 'Call centre' | 'Phone call'
   onClose: () => void
+  /** Moves on to the call itself (the consent step comes first), with whoever was picked here. */
+  onContinue: (target?: CallTarget) => void
+  continueLabel: string
 }
 
 /**
@@ -41,7 +45,7 @@ interface Props {
  * logs the customer's answer (with a Consent ID) so recording can be switched
  * on later without changing the agent's workflow.
  */
-export default function ConsentModal({ channel, onClose }: Props) {
+export default function ConsentModal({ channel, onClose, onContinue, continueLabel }: Props) {
   const { consents, addConsent } = useAppState()
   const call = useCall()
 
@@ -86,6 +90,19 @@ export default function ConsentModal({ channel, onClose }: Props) {
       }
       subtitle={`${channel} · ${subjectName}`}
       onClose={onClose}
+      footer={
+        <>
+          <button className="btn" onClick={onClose}>Cancel</button>
+          <button
+            className="btn btn-green"
+            onClick={() =>
+              onContinue(lead ? { label: lead.name, leadId: lead.id, purpose: call.target?.purpose ?? 'lead' } : call.target ?? undefined)
+            }
+          >
+            {channel === 'Phone call' ? <PhoneForwarded size={15} /> : <Phone size={15} />} {continueLabel}
+          </button>
+        </>
+      }
     >
       {!call.target?.leadId && (
         <label className="consent-subject">
