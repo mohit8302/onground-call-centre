@@ -141,6 +141,8 @@ export interface Kudos {
 
 export interface TaskItem {
   id: string
+  /** Groups the task on the dashboard's My Tasks card. */
+  kind: 'callback' | 'hot-lead' | 'outcome'
   title: string
   detail: string
   leadId?: string

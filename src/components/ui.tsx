@@ -62,10 +62,12 @@ interface ModalProps {
   children: ReactNode
   footer?: ReactNode
   wide?: boolean
+  /** Extra class on the panel, e.g. a coloured header variant. */
+  className?: string
 }
 
 /** Accessible modal: Escape closes, focus moves inside, backdrop click closes. */
-export function Modal({ title, subtitle, onClose, children, footer, wide }: ModalProps) {
+export function Modal({ title, subtitle, onClose, children, footer, wide, className }: ModalProps) {
   const panelRef = useRef<HTMLDivElement>(null)
   // Callers pass inline functions; read the latest one without re-running the effect.
   const onCloseRef = useRef(onClose)
@@ -91,7 +93,7 @@ export function Modal({ title, subtitle, onClose, children, footer, wide }: Moda
 
   return (
     <div className="modal-backdrop" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div className={`modal ${wide ? 'modal-wide' : ''}`} role="dialog" aria-modal="true" tabIndex={-1} ref={panelRef}>
+      <div className={`modal ${wide ? 'modal-wide' : ''} ${className ?? ''}`} role="dialog" aria-modal="true" tabIndex={-1} ref={panelRef}>
         <header className="modal-head">
           <div>
             <h2 className="modal-title">{title}</h2>
@@ -116,6 +118,20 @@ export function SectionHeader({ title, subtitle, action }: { title: string; subt
         {subtitle && <p className="page-subtitle">{subtitle}</p>}
       </div>
       {action}
+    </div>
+  )
+}
+
+/** Navy band on top of the three Plan screens, as in the mock's planner. */
+export function PlanBand() {
+  const date = new Date().toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' })
+  return (
+    <div className="plan-band">
+      <div>
+        <div className="plan-band-kicker">Today’s calling plan</div>
+        <div className="plan-band-title">Planner</div>
+      </div>
+      <span className="plan-band-date">{date}</span>
     </div>
   )
 }

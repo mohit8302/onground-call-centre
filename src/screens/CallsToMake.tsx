@@ -4,7 +4,7 @@ import { LEADS } from '../data/mockData'
 import { useCall } from '../calling/callContext'
 import { useAppState } from '../state/appContext'
 import { formatRupees } from '../lib/format'
-import { Avatar, ScorePill, SectionHeader } from '../components/ui'
+import { Avatar, PlanBand, ScorePill, SectionHeader } from '../components/ui'
 
 const PAGE_SIZE = 2
 
@@ -23,6 +23,7 @@ export default function CallsToMake() {
 
   return (
     <div className="page">
+      <PlanBand />
       <SectionHeader title="Calls to make" subtitle="Ranked by lead attractiveness score. Tap a lead for the full picture." />
 
       <div className="list-card card">

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Award, Bot, Hash, Sparkles, Wand2 } from 'lucide-react'
-import { AGENTS, CALENDAR_EVENTS, CHANNELS, DIRECT_MESSAGES, KUDOS, LEADS, TASKS } from '../data/mockData'
+import { AGENTS, AGENT_PROFILE, CALENDAR_EVENTS, CHANNELS, DIRECT_MESSAGES, KUDOS, LEADS, TASKS } from '../data/mockData'
 import { useAppState } from '../state/appContext'
 import { formatRupees, toDateKey } from '../lib/format'
 import { Avatar } from '../components/ui'
@@ -24,6 +24,12 @@ export default function PulseHome() {
 
   return (
     <div className="page">
+      <header className="pulse-band">
+        <span className="pulse-band-logo"><Hash size={15} /></span>
+        <h1 className="pulse-band-title">Pulse</h1>
+        <span className="pulse-band-sub">{AGENT_PROFILE.team}</span>
+      </header>
+
       <section className="avani-hero">
         <div className="avani-head">
           <span className="avani-icon"><Sparkles size={20} /></span>

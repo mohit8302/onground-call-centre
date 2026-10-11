@@ -95,8 +95,7 @@
 
 .nav-sub-item:hover { background: rgba(255, 255, 255, 0.05); color: #cfe4dc; }
 .nav-sub-item.active { background: rgba(93, 202, 165, 0.14); color: #7ee0bb; font-weight: 800; }
-.nav-sub-item.ghost { color: #d99a5c; margin-top: 4px; }
-.nav-sub-item.ghost.active { background: rgba(217, 154, 92, 0.14); }
+.nav-sub-item.ghost { margin-top: 4px; }
 
 .main-col {
   flex: 1;
@@ -108,9 +107,7 @@
 
 .content {
   padding: 22px 24px calc(var(--launcher-space) + 40px);
-  max-width: 1180px;
   width: 100%;
-  margin: 0 auto;
 }
 
 .scrim {
@@ -831,7 +828,8 @@
 
 /* ============ Pulse ============ */
 .avani-hero {
-  background: linear-gradient(135deg, #0a1a14, var(--green-dark) 60%, #5b21b6);
+  background: linear-gradient(120deg, #3b1254, #6d28d9 55%, #8b5cf6);
+  box-shadow: 0 6px 18px rgba(109, 40, 217, 0.32);
   color: #fff;
   border-radius: var(--radius);
   padding: 18px;
@@ -1550,6 +1548,237 @@
 
 /* ============ Responsive ============ */
 /* With the fixed sidebar showing, centre the launcher on the content column. */
+/* ============ Mock-matching colour bands ============ */
+/* Dashboard hero: full-width navy band with the KPI tiles inside it */
+.hero {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 14px;
+  margin: -22px -24px 0;
+  padding: 16px 24px 18px;
+  color: #fff;
+  background:
+    radial-gradient(circle at 15% -10%, #2a3a8f 0%, transparent 45%),
+    linear-gradient(160deg, #0b0f2e 0%, #151b4d 55%, #1e2764 100%);
+}
+.hero-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.hero-greeting,
+.hero-meta { color: #a5b4fc; }
+.hero-name { font-size: 20px; }
+.hero-side { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+.hero .status-badge { color: #6ee7b7; background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(110, 231, 183, 0.35); }
+.period-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 5px 10px;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+.hero .kpi-grid { gap: 10px; }
+.hero .kpi {
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 13px;
+  padding: 12px 8px;
+  text-align: center;
+}
+.hero .kpi-value { color: #fff; font-size: 20px; }
+.hero .kpi-label { color: #9ca3e8; font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; }
+.hero .kpi-delta {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 6px;
+  padding: 1px 7px;
+  border-radius: 7px;
+  font-size: 12.5px;
+  font-weight: 800;
+  background: rgba(52, 211, 153, 0.18);
+  color: #6ee7b7;
+}
+
+/* Dashboard body: two columns, then full-width charts */
+.dash-col { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.section-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 2px 2px 8px;
+}
+.section-label h2 {
+  font-size: 13px;
+  font-weight: 700;
+  color: #8e8e93;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.queue-row { background: var(--surface); border-color: var(--line); }
+
+.progress-card {
+  border-radius: var(--radius);
+  padding: 14px 16px 16px;
+  color: #fff;
+  background: linear-gradient(135deg, #0a1f18, #0f6e56 60%, #1d9e75);
+  box-shadow: 0 8px 22px rgba(15, 110, 86, 0.25);
+}
+.progress-card h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  font-weight: 800;
+  color: #9fe1cb;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
+}
+.progress-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.progress-tile {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 10px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.progress-tile .stat-big { color: #fff; }
+.tile-delta {
+  font-size: 12.5px;
+  font-weight: 800;
+  padding: 1px 7px;
+  border-radius: 7px;
+  background: rgba(52, 211, 153, 0.2);
+  color: #9fe1cb;
+}
+.tile-delta.gold { background: rgba(245, 158, 11, 0.25); color: #fcd34d; }
+.tile-label { font-size: 13px; font-weight: 700; color: #e6f5ef; }
+
+.earnings-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.earnings-head h2 { font-size: 15px; color: var(--ink); }
+.earnings-line { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; margin: 2px 0 10px; }
+.earnings .earnings-value { font-size: 28px; }
+
+.tasks-card {
+  border-radius: var(--radius);
+  padding: 12px 14px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: linear-gradient(135deg, #3d1f0a, #7c3a12);
+  box-shadow: 0 8px 22px rgba(124, 58, 18, 0.25);
+}
+.tasks-head { display: flex; align-items: center; justify-content: space-between; }
+.tasks-head h2 { display: flex; align-items: center; gap: 8px; font-size: 16px; color: #fff; }
+.tasks-head h2 svg { color: #fcd34d; }
+.tasks-card .count-badge { background: #ef4444; color: #fff; }
+.link-btn.light { color: #fde3c4; }
+.task-group { background: var(--surface); border-radius: 12px; }
+.task-group-head {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border: none;
+  background: none;
+  text-align: left;
+  font-size: 14.5px;
+  color: var(--ink);
+}
+.task-group-text { flex: 1; min-width: 0; }
+.task-group-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.task-group-icon.callback { background: #e0f2fe; color: #0369a1; }
+.task-group-icon.hot-lead { background: #f1ecff; color: #6d28d9; }
+.task-group-icon.outcome { background: #fef3c7; color: #b45309; }
+.task-group-chevron { color: #aeaeb2; transition: transform 0.15s; }
+.task-group.open .task-group-chevron { transform: rotate(90deg); }
+.task-group .task-list { padding: 0 8px 8px; }
+
+.chart-card { padding: 8px 12px 6px; }
+.chart-card .chart { height: 150px; }
+
+/* Plan screens: "Today's calling plan / Planner" band */
+.plan-band {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: -22px -24px 0;
+  padding: 14px 24px;
+  border-radius: 0 0 18px 18px;
+  background: linear-gradient(135deg, #1a1a2e, #2d2d5f);
+  color: #fff;
+}
+.plan-band-kicker { color: #a5b4fc; font-size: 13.5px; }
+.plan-band-title { font-size: 17px; font-weight: 700; }
+.plan-band-date {
+  font-size: 13px;
+  font-weight: 800;
+  background: rgba(255, 255, 255, 0.12);
+  padding: 5px 10px;
+  border-radius: 9px;
+  white-space: nowrap;
+}
+
+/* Pulse: purple header band, purple channel header */
+.pulse-band {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 12px 16px;
+  border-radius: var(--radius);
+  background: linear-gradient(135deg, #3b1a5a, #6b2fa0);
+  color: #fff;
+}
+.pulse-band-logo {
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: #fff;
+  color: #6b2fa0;
+}
+.pulse-band-title { font-size: 16px; font-weight: 700; }
+.pulse-band-sub { font-size: 12.5px; color: rgba(255, 255, 255, 0.65); }
+
+.channel-header { background: #3b1a5a; border: none; color: #fff; }
+.channel-header .channel-title { color: #fff; }
+.channel-header .muted { color: rgba(255, 255, 255, 0.7); }
+.channel-header .icon-btn { background: rgba(255, 255, 255, 0.18); border-color: transparent; color: #fff; border-radius: 50%; }
+
+/* Leads modal: purple header */
+.modal-purple .modal-head {
+  background: linear-gradient(135deg, #3b1254, #6b2fa0);
+  border-bottom: none;
+  border-radius: 18px 18px 0 0;
+}
+.modal-purple .modal-title { color: #fff; }
+.modal-purple .modal-subtitle { color: rgba(255, 255, 255, 0.7); }
+.modal-purple .modal-head .icon-btn { background: rgba(255, 255, 255, 0.16); color: #fff; border-radius: 50%; }
+
+@media (max-width: 600px) {
+  .hero .kpi-value { font-size: 18px; }
+}
+
 @media (min-width: 861px) {
   .call-launcher { left: calc(50% + 116px); }
 }
@@ -1573,6 +1802,8 @@
   .topbar .topbar-menu { display: inline-flex; }
   .topbar { padding: 8px 12px; }
   .content { padding: 16px 16px calc(var(--launcher-space) + 40px); }
+  .hero,
+  .plan-band { margin: -16px -16px 0; padding-left: 16px; padding-right: 16px; }
   .dash-grid,
   .pulse-grid { grid-template-columns: minmax(0, 1fr); }
 }
@@ -1600,3 +1831,4 @@
   .call-dock { right: 16px; }
   .sop-summary { gap: 20px; }
 }
+.avani-hero .btn-light { color: #5b21b6; }

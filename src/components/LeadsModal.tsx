@@ -36,6 +36,7 @@ export default function LeadsModal() {
   return (
     <Modal
       wide
+      className="modal-purple"
       title="Leads"
       subtitle="Your allocated leads · SLA to close"
       onClose={close}

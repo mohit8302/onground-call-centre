@@ -3,7 +3,7 @@ import { LEADS } from '../data/mockData'
 import { useAppState } from '../state/appContext'
 import { useCall } from '../calling/callContext'
 import { formatRupees, formatWhen } from '../lib/format'
-import { Avatar, ScorePill, SectionHeader } from '../components/ui'
+import { Avatar, PlanBand, ScorePill, SectionHeader } from '../components/ui'
 import type { CallRecord } from '../types'
 
 /** A missed call counts as handled once a later connected call exists for the same lead. */
@@ -36,6 +36,7 @@ export default function Incoming() {
 
   return (
     <div className="page">
+      <PlanBand />
       <SectionHeader title="Incoming" subtitle="Missed calls, ranked by expected value. Call the highest-value leads back first." />
 
       <div className="summary-strip card">

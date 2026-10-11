@@ -94,7 +94,7 @@ Shell: dark-green sidebar with Plan sub-items. The top bar has the OG logo, live
 - AI voice calling.
 - Sending the WhatsApp consent request.
 - The mock's settings menu (language, Dev Mode, Industry).
-- Some visual differences from the mock: the KPIs aren't on a navy band, and the CSAT trend is a line chart instead of bars.
+- From the mock, not rebuilt: the top-bar search, the OG Score breakdown sheet, the Calendar share picker, and the WhatsApp customer-discussions channel.
 
 See [docs/FEATURE_STATUS.md](docs/FEATURE_STATUS.md) for the full list and how each item was verified.
 

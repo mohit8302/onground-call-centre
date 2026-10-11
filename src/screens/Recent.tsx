@@ -3,7 +3,7 @@ import { PhoneIncoming, PhoneMissed, PhoneOutgoing, Radio } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { useAppState } from '../state/appContext'
 import { formatDuration, formatWhen } from '../lib/format'
-import { ScorePill, SectionHeader } from '../components/ui'
+import { PlanBand, ScorePill, SectionHeader } from '../components/ui'
 import type { CallDirection } from '../types'
 
 const DIRECTION: Record<CallDirection, { icon: LucideIcon; label: string }> = {
@@ -21,6 +21,7 @@ export default function Recent() {
 
   return (
     <div className="page">
+      <PlanBand />
       <SectionHeader title="Recent calls" subtitle="Tap a call to review it against the SOP." />
 
       <div className="chip-row" role="group" aria-label="Filter calls">

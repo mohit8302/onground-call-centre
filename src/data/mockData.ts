@@ -192,10 +192,11 @@ export const QUEUE_NOW: QueueEntry[] = [
 ]
 
 export const TASKS: TaskItem[] = [
-  { id: 'task-1', title: 'Call back Mukunda R.', detail: 'Quote follow-up · due 4:30 pm', leadId: 'lead-mukunda' },
-  { id: 'task-2', title: 'Call back Ritu S.', detail: 'Missed inbound · high intent', leadId: 'lead-ritu' },
-  { id: 'task-3', title: 'Review hot lead Faizan A.', detail: 'Untouched for 24h', leadId: 'lead-faizan' },
-  { id: 'task-4', title: 'Log outcome for Kavitha R.', detail: 'Last call has no outcome', leadId: 'lead-kavitha' },
+  { id: 'task-1', kind: 'callback', title: 'Call back Mukunda R.', detail: 'Quote follow-up · due 4:30 pm', leadId: 'lead-mukunda' },
+  { id: 'task-2', kind: 'callback', title: 'Call back Ritu S.', detail: 'Missed inbound · high intent', leadId: 'lead-ritu' },
+  { id: 'task-3', kind: 'hot-lead', title: 'Review hot lead Faizan A.', detail: 'Untouched for 24h', leadId: 'lead-faizan' },
+  { id: 'task-5', kind: 'hot-lead', title: 'Review hot lead Divya P.', detail: 'Untouched for 26h', leadId: 'lead-divya' },
+  { id: 'task-4', kind: 'outcome', title: 'Log outcome for Kavitha R.', detail: 'Last call has no outcome', leadId: 'lead-kavitha' },
 ]
 
 export const KPIS = {
@@ -204,8 +205,9 @@ export const KPIS = {
   csatToday: 94,
   csatDelta: '+2pt',
   leadsCreated: 3,
+  leadsCreatedDelta: 1,
   leadsCalled: 2,
-  progressTarget: 8,
+  leadsCalledDelta: 2,
   earnings: 5200,
   earningsTarget: 6000,
   coachedEarnings: 1700,

@@ -17,6 +17,13 @@ const SCREENS = {
 }
 const SUB_ITEMS = ['Calls to make', 'Incoming', 'Recent', 'Practise a call']
 
+/** Expands one row of the My Tasks card (callback / hot-lead / outcome) if it is closed. */
+async function openTaskGroup(page, kind) {
+  const head = await page.waitForSelector(`.task-group:has(.task-group-icon.${kind}) .task-group-head`)
+  if ((await head.evaluate((el) => el.getAttribute('aria-expanded'))) !== 'true') await head.click()
+  await page.waitForSelector('.task')
+}
+
 async function go(page, label) {
   await clickText(page, SUB_ITEMS.includes(label) ? '.nav-sub-item' : '.nav-item', label)
   await page.waitForSelector(SCREENS[label], { timeout: 10000 })
@@ -57,13 +64,16 @@ async function go(page, label) {
       assert.equal((await page.$$('.queue-row')).length, 2)
     }],
     ['completing a task persists across reload', async () => {
+      await openTaskGroup(page, 'callback')
       await page.click('.task .task-check')
       await page.reload({ waitUntil: 'networkidle0' })
-      await page.waitForSelector('.task')
+      await openTaskGroup(page, 'callback')
       assert.ok(await page.$('.task.done'))
+      assert.match(await textOf(page, '.task-group-head'), /^1 callback/)
       await page.click('.task.done .task-check') // undo for later runs
     }],
     ['dashboard task opens the leads modal; paging and collapsibles work', async () => {
+      await openTaskGroup(page, 'callback')
       await clickText(page, '.task-body', 'Ritu S.')
       await page.waitForSelector('.modal')
       assert.equal(await textOf(page, '.lead-card-name'), 'Ritu S.')

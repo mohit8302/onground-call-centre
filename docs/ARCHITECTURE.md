@@ -62,7 +62,7 @@ offline ◄── signalling lost / network error ── reconnect() ──► c
 ## Styling
 
 - `index.css` holds design tokens (`--green`, `--forest`, `--red`, …), the reset and focus styles. `App.css` holds component classes grouped by screen.
-- The palette and component shapes follow the mock: dark-green sidebar, rounded cards, coloured nav chips, blue calendar selection, the red notification bell and the gold score ring.
+- The palette and component shapes follow the mock: dark-green sidebar, navy dashboard and planner bands, purple Pulse and Leads headers, rounded cards, coloured nav chips, blue calendar selection, the red notification bell and the gold score ring.
 - Responsive breakpoints: 1024px (4 KPI columns become 2, calendar and practise stack), 860px (sidebar becomes a drawer, single column), 600px (compact rows, hidden labels). E2E tests check 1280, 390 and 360px for horizontal overflow.
 
 ## Decisions
