@@ -12,11 +12,12 @@ export default function PulseChannel() {
 
   const [draft, setDraft] = useState('')
   const [customReply, setCustomReply] = useState('')
-  const endRef = useRef<HTMLDivElement>(null)
+  const chatRef = useRef<HTMLElement>(null)
 
-  // Keep the newest message in view.
+  // Keep the newest message in view (scrolls the chat box, not the page).
   useEffect(() => {
-    endRef.current?.scrollIntoView?.({ block: 'end' })
+    const chat = chatRef.current
+    if (chat) chat.scrollTop = chat.scrollHeight
   }, [messages.length])
 
   return (
@@ -70,7 +71,7 @@ export default function PulseChannel() {
         </section>
       )}
 
-      <section className="chat card" aria-label="Messages" aria-live="polite">
+      <section className="chat card" aria-label="Messages" aria-live="polite" ref={chatRef}>
         {messages.map((m) => (
           <div key={m.id} className={`bubble-row ${m.mine ? 'mine' : ''}`}>
             {!m.mine && <Avatar initials={m.initials} size={30} tone="purple" />}
@@ -81,7 +82,6 @@ export default function PulseChannel() {
             </div>
           </div>
         ))}
-        <div ref={endRef} />
       </section>
 
       <form

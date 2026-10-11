@@ -9,6 +9,8 @@ import type { CallApi, CallStatus, CallTarget, PendingWrapUp } from './callConte
 
 // How long an outgoing call may ring before we give up.
 const RING_TIMEOUT_MS = 30_000
+// How long a dropped connection may try to recover before the call ends.
+const DISCONNECT_GRACE_MS = 5_000
 
 // Short, readable ID so it can be read out loud during a demo.
 function makePeerId() {
@@ -23,6 +25,24 @@ function micErrorMessage(err: unknown) {
   if (name === 'NotFoundError') return 'No microphone was found. Plug one in and try again.'
   if (name === 'NotReadableError') return 'Your microphone is being used by another app. Close it and try again.'
   return err instanceof Error ? err.message : 'Could not start the microphone.'
+}
+
+type EndReason = 'hangup' | 'remote-ended' | 'rejected' | 'no-answer' | 'failed' | 'remote-declined' | 'remote-cancelled'
+
+/** Messages sent over a PeerJS data connection to signal call control. */
+interface ControlMessage {
+  type: 'reject' | 'cancel' | 'busy'
+}
+
+// Outcome text for calls that never connected, by reason and direction.
+const OUTCOME_BY_REASON: Record<EndReason, Record<'incoming' | 'outgoing', string>> = {
+  hangup: { incoming: 'Not connected', outgoing: 'Not connected' },
+  'remote-ended': { incoming: 'Caller hung up', outgoing: 'Not connected' },
+  rejected: { incoming: 'Declined', outgoing: 'Cancelled' },
+  'no-answer': { incoming: 'Not answered', outgoing: 'No answer' },
+  failed: { incoming: 'Not connected', outgoing: 'Not connected' },
+  'remote-declined': { incoming: 'Declined', outgoing: 'Declined by recipient' },
+  'remote-cancelled': { incoming: 'Caller hung up', outgoing: 'Cancelled' },
 }
 
 // Everything about the call in progress that listeners need to read without
@@ -96,11 +116,26 @@ export default function CallProvider({ children, onCallLogged }: Props) {
   }, [])
 
   /**
+   * PeerJS gives no signal when an unanswered call is rejected or cancelled,
+   * so we send a one-off message over a short-lived data connection.
+   */
+  const sendControl = useCallback((peerId: string, type: ControlMessage['type']) => {
+    const peer = peerRef.current
+    if (!peer || peer.disconnected) return
+    const conn = peer.connect(peerId, { reliable: true })
+    conn.on('open', () => {
+      conn.send({ type } satisfies ControlMessage)
+      window.setTimeout(() => conn.close(), 1000)
+    })
+    conn.on('error', () => conn.close()) // best effort; ring timeouts are the fallback
+  }, [])
+
+  /**
    * Ends the current session exactly once: stops the mic, detaches remote
    * audio, logs the call and resets the UI. Safe to call from any listener.
    */
   const finishSession = useCallback(
-    (reason: 'hangup' | 'remote-ended' | 'rejected' | 'no-answer' | 'failed') => {
+    (reason: EndReason) => {
       const session = sessionRef.current
       if (!session) return
       sessionRef.current = null
@@ -111,6 +146,10 @@ export default function CallProvider({ children, onCallLogged }: Props) {
 
       const durationSec = session.connectedAt ? Math.round((Date.now() - session.connectedAt) / 1000) : 0
       const connected = session.connectedAt !== null
+      // Tell the other side we gave up before the call connected.
+      if (!connected && (reason === 'rejected' || reason === 'no-answer')) {
+        sendControl(session.peerId, session.direction === 'incoming' ? 'reject' : 'cancel')
+      }
       const record: CallRecord = {
         id: makeId('live'),
         name: session.target?.label || session.peerId,
@@ -118,11 +157,7 @@ export default function CallProvider({ children, onCallLogged }: Props) {
         direction: connected ? session.direction : session.direction === 'incoming' ? 'missed' : 'outgoing',
         startedAt: new Date(session.startedAt).toISOString(),
         durationSec,
-        outcome: connected
-          ? 'Connected'
-          : reason === 'rejected'
-            ? session.direction === 'incoming' ? 'Declined' : 'Cancelled'
-            : reason === 'no-answer' ? 'No answer' : 'Not connected',
+        outcome: connected ? 'Connected' : OUTCOME_BY_REASON[reason][session.direction],
         source: 'live',
         peerId: session.peerId,
         summary: session.target?.purpose === 'practice' ? 'Practice call with a teammate.' : undefined,
@@ -141,7 +176,7 @@ export default function CallProvider({ children, onCallLogged }: Props) {
       setRemotePeerId('')
       setStatus(peerRef.current && !peerRef.current.disconnected ? 'ready' : 'offline')
     },
-    [clearRingTimer, stopLocalTracks],
+    [clearRingTimer, stopLocalTracks, sendControl],
   )
 
   // Listen to a call's lifecycle. Used for both outgoing and incoming calls.
@@ -162,12 +197,21 @@ export default function CallProvider({ children, onCallLogged }: Props) {
 
         // 'close' is not always delivered when the other tab disappears, so
         // also watch the underlying RTCPeerConnection.
+        // 'disconnected' can recover, so give it a short grace period.
         const pc = call.peerConnection
+        let graceTimer: number | undefined
         pc?.addEventListener('connectionstatechange', () => {
           if (sessionRef.current?.call !== call) return
+          window.clearTimeout(graceTimer)
           if (pc.connectionState === 'failed' || pc.connectionState === 'closed') {
             setError(pc.connectionState === 'failed' ? 'The connection dropped.' : '')
             finishSession('remote-ended')
+          } else if (pc.connectionState === 'disconnected') {
+            graceTimer = window.setTimeout(() => {
+              if (sessionRef.current?.call !== call || pc.connectionState === 'connected') return
+              setError('The connection was lost.')
+              finishSession('remote-ended')
+            }, DISCONNECT_GRACE_MS)
           }
         })
       })
@@ -212,6 +256,7 @@ export default function CallProvider({ children, onCallLogged }: Props) {
       // Already busy? Reject the new caller; it shows up as missed.
       if (sessionRef.current) {
         call.close()
+        sendControl(call.peer, 'busy')
         onLoggedRef.current({
           id: makeId('live'),
           name: call.peer,
@@ -242,6 +287,21 @@ export default function CallProvider({ children, onCallLogged }: Props) {
       setStatus('ringing')
     })
 
+    // Control messages from the other side about a call that has not connected.
+    peer.on('connection', (conn) => {
+      conn.on('data', (data) => {
+        const session = sessionRef.current
+        const msg = data as Partial<ControlMessage>
+        if (!session || session.peerId !== conn.peer || session.connectedAt !== null) return
+        if ((msg.type === 'reject' || msg.type === 'busy') && session.direction === 'outgoing') {
+          setError(msg.type === 'busy' ? 'The other person is on another call.' : 'The other person declined the call.')
+          finishSession('remote-declined')
+        } else if (msg.type === 'cancel' && session.direction === 'incoming') {
+          finishSession('remote-cancelled')
+        }
+      })
+    })
+
     peer.on('disconnected', () => {
       // Lost the signalling server. An active call can keep going (audio is
       // peer-to-peer) but no new calls can be placed until we reconnect.
@@ -264,11 +324,18 @@ export default function CallProvider({ children, onCallLogged }: Props) {
     })
 
     return peer
-  }, [attachCallEvents, finishSession])
+  }, [attachCallEvents, finishSession, sendControl])
 
   useEffect(() => {
     const peer = createPeer()
+    // Closing the tab mid-call: hang up properly so the other side finds out now.
+    const onPageHide = () => {
+      sessionRef.current?.call.close()
+      peerRef.current?.destroy()
+    }
+    window.addEventListener('pagehide', onPageHide)
     return () => {
+      window.removeEventListener('pagehide', onPageHide)
       sessionRef.current?.call.close()
       sessionRef.current = null
       localStreamRef.current?.getTracks().forEach((track) => track.stop())

@@ -171,7 +171,7 @@ export default function Dashboard() {
           </div>
           <div className="chart">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={WEEK_STATS} margin={{ top: 8, right: 8, left: -24, bottom: 0 }}>
+              <LineChart data={WEEK_STATS} margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>
                 <CartesianGrid vertical={false} stroke="#eef0f3" />
                 <XAxis dataKey="day" tickLine={false} axisLine={false} fontSize={12} />
                 <YAxis domain={[80, 100]} tickLine={false} axisLine={false} fontSize={12} unit="%" />

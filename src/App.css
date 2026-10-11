@@ -142,7 +142,7 @@
   gap: 10px;
 }
 
-.topbar-menu { display: none; }
+.topbar .topbar-menu { display: none; }
 .topbar .icon-btn { background: transparent; color: #fff; border-color: rgba(255, 255, 255, 0.2); }
 
 .brand-logo {
@@ -765,7 +765,7 @@
 
 .cal-day {
   position: relative;
-  aspect-ratio: 1;
+  height: 50px;
   border: none;
   border-radius: 12px;
   background: none;
@@ -1308,9 +1308,10 @@
     transition: transform 0.2s ease;
   }
 
+  .sidebar:not(.open) { box-shadow: none; }
   .sidebar.open { transform: none; }
   .main-col { margin-left: 0; }
-  .topbar-menu { display: inline-flex; }
+  .topbar .topbar-menu { display: inline-flex; }
   .topbar { padding: 8px 12px; }
   .content { padding: 16px 16px 120px; }
   .dash-grid,
