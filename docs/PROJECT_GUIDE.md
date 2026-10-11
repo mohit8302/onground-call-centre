@@ -51,7 +51,9 @@ Key decisions:
 | `src/types.ts` | Shared types (`Lead`, `CallRecord`, `Consent`, …) |
 | `src/screens/` | Dashboard, CallsToMake, Incoming, Recent, CalendarScreen, PulseHome, PulseChannel, Practise |
 | `src/components/` | Sidebar, TopBar, LeadsModal, SopReviewModal, ConsentModal, DpdpModal, PhoneCallModal, `ui.tsx` (Modal, pills, progress bars) |
-| `src/calling/` | `callContext.ts` (API), `CallProvider.tsx` (all WebRTC logic), `CallDock.tsx` (phone UI), `CallLauncher.tsx` (bottom bar) |
+| `src/calling/` | `callContext.ts` (API), `CallProvider.tsx` (all WebRTC logic), `CallDock.tsx` (phone UI), `CallLauncher.tsx` (bottom bar), `aiVoice.ts` (browser speech in and out) |
+| `src/components/AiCallModal.tsx` | The AI voice call: turn-taking, transcript, summary, logging |
+| `api/ai-call.ts` | Server route (Vercel Function) that calls Gemini; the only place the API key lives |
 | `e2e/` | `ui.e2e.cjs` (screens), `calling.e2e.cjs` (real calls), `helpers.cjs` |
 
 ## 4. Calling guide
@@ -84,6 +86,12 @@ The shield opens the five DPDP rules, and each rule says honestly whether this a
 
 The mic only works on `localhost` or HTTPS. See [CALLING_GUIDE.md](CALLING_GUIDE.md) for errors and limits.
 
+**AI voice call (AI ↔ human):**
+- Launcher → **AI call** (after consent): the AI calls you as an AI agent. Practise a call → **AI customer**: the AI plays the lead and you practise.
+- The browser transcribes your speech (Chrome/Edge) and speaks the replies. Only text goes to `/api/ai-call`, which holds the Gemini key and asks Gemini for the next line.
+- At the end, the AI writes a summary and outcome, and the call is logged to Recent.
+- Needs a free `GEMINI_API_KEY` in `.env.local` or on Vercel.
+
 ## 5. Features
 
 | Area | Status |
@@ -100,7 +108,8 @@ The mic only works on `localhost` or HTTPS. See [CALLING_GUIDE.md](CALLING_GUIDE
 | Real audio calling with lead linking and outcomes | Done |
 | Consent step and DPDP explainer | Done; sending the consent request on WhatsApp is not connected |
 | Phone (PSTN) call | Not possible without a telephony provider. The app says so and offers an in-app call. |
-| Recording, transcription, AI call assist, AI voice calls | Not built. These need a server and API keys. |
+| AI voice calls with Gemini (AI agent calls you, or AI customer for practice), summarised and logged | Done; needs a free `GEMINI_API_KEY` on the server |
+| Recording, server-side transcription, live AI call assist | Not built |
 | Responsive down to 360 px | Done |
 
 The full table is in [FEATURE_STATUS.md](FEATURE_STATUS.md).

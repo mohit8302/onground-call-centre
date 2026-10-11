@@ -57,6 +57,18 @@ Then read `CallProvider.tsx` from top to bottom:
 
 `CallDock.tsx` only displays state. It renders one block per status, plus the wrap-up picker and the error banner. `DialForm` is keyed by the call target, so "Call back" on a live missed call prefills the peer ID, and a new target resets the input.
 
+### The AI voice call: `aiVoice.ts`, `components/AiCallModal.tsx`, `api/ai-call.ts`
+
+1. **`aiVoice.ts`** wraps the Web Speech API:
+   - `listenOnce` runs one SpeechRecognition utterance and reports interim text, the final text, silence or an error.
+   - `speak` reads the reply sentence by sentence (Chrome cuts off long utterances) and resolves when done. A timeout fallback covers browsers that never fire the end event.
+2. **`AiCallModal.tsx`** runs the conversation:
+   - `aiTurn()` posts the transcript, adds the reply, speaks it, then calls `listen()`, or `endCall()` if the AI said goodbye.
+   - `humanSays()` handles both speech and typed replies; typing while the AI talks cuts it off.
+   - `endCall()` asks for a summary, then logs a `CallRecord` with `source: 'ai'`.
+   - Callbacks read `phaseRef`, `turnsRef` and `endedRef`, not state, so late events from a finished call are ignored.
+3. **`api/ai-call.ts`**: `parse()` validates the untrusted body, `systemPrompt()` builds the agent or customer persona from the lead's facts, `toContents()` maps the transcript to Gemini's `user`/`model` turns, and `handleAiCall()` maps errors (no key, bad key, rate limit) to plain messages.
+
 ## 5. Shell components: `src/components/*`
 
 - `Sidebar.tsx`: nav items plus Plan sub-items. `Plan` is highlighted when any sub-screen is active.
@@ -72,11 +84,11 @@ Then read `CallProvider.tsx` from top to bottom:
 | `Dashboard.tsx` | "Leads called" adds today's live calls to the demo baseline. Charts use `ResponsiveContainer`. |
 | `CallsToMake.tsx` | `RANKED` is sorted once at module level. Pagination is plain slicing. The row header is a `<button aria-expanded>`. |
 | `Incoming.tsx` | `isCalledBack()`: a missed call disappears once a later **connected** call exists for the same lead (or peer). Expected value = `price × intent / 100`. |
-| `Recent.tsx` | Filter chips, a `live` tag for real calls, and the SOP pill or "No SOP". |
+| `Recent.tsx` | Filter chips, a `live` tag for real browser calls, an `AI call` tag for AI calls, and the SOP pill or "No SOP". |
 | `CalendarScreen.tsx` | Dates are `YYYY-MM-DD` strings, so comparing and sorting is plain string comparison. Clicking an upcoming item jumps to its month and day. |
-| `PulseHome.tsx` | The daily brief is computed from local state and labelled "No AI model was called". |
+| `PulseHome.tsx` | The daily brief is computed from local state and labelled "No AI model was called". (The AI voice call is the only feature that calls a model.) |
 | `PulseChannel.tsx` | The chat auto-scrolls its own container (`scrollTop`), not the page. |
-| `Practise.tsx` | `useMicLevel()`: real `getUserMedia` → `AnalyserNode` → RMS level, drawn on each `requestAnimationFrame`. The cleanup stops the tracks and closes the `AudioContext`. |
+| `Practise.tsx` | `useMicLevel()`: real `getUserMedia` → `AnalyserNode` → RMS level, drawn on each `requestAnimationFrame`. The cleanup stops the tracks and closes the `AudioContext`. Step 3 opens `AiCallModal` with the AI as the customer. |
 
 ## 7. Tests: `e2e/*`
 
@@ -85,7 +97,7 @@ Then read `CallProvider.tsx` from top to bottom:
   - launches the local Chrome with `--use-fake-device-for-media-stream` and `--use-fake-ui-for-media-stream`
   - wraps `RTCPeerConnection` so tests can read real WebRTC stats
   - includes a small step runner
-- `ui.e2e.cjs`: every screen at three widths, plus interactions and persistence.
+- `ui.e2e.cjs`: every screen at three widths, plus interactions and persistence. The AI call step intercepts `/api/ai-call` and answers it locally, so the browser flow is tested without a key.
 - `calling.e2e.cjs`: real calls between three isolated browser contexts.
 
 ## Conventions

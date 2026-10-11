@@ -184,6 +184,64 @@ async function go(page, label) {
       await page.waitForSelector('.call-dock')
       await page.click('.call-dock-head .icon-btn')
     }],
+    ['AI call: consent, a two-way conversation, then a summary logged to Recent', async () => {
+      // The browser side is real (consent, turn-taking, speech, logging). Only the
+      // server's Claude reply is stubbed, so this runs without an API key or cost.
+      const sent = []
+      const stub = (req) => {
+        if (!req.url().endsWith('/api/ai-call')) return req.continue()
+        const body = JSON.parse(req.postData())
+        sent.push(body)
+        const json =
+          body.action === 'summary'
+            ? { summary: 'Wants the 12-month EMI. Quote to go on WhatsApp.', outcome: 'Quote sent' }
+            : body.turns.length === 0
+              ? { text: 'Hello Mukunda, I am Avani, an AI assistant from The Sleep Company.', end: false }
+              : { text: 'I will send the quote on WhatsApp. Goodbye!', end: true }
+        req.respond({ status: 200, contentType: 'application/json', body: JSON.stringify(json) })
+      }
+      await page.setRequestInterception(true)
+      page.on('request', stub)
+      try {
+        await clickText(page, '.launcher-btn', 'AI call')
+        await page.waitForSelector('.consent-script')
+        assert.match(await textOf(page, '.modal-subtitle'), /^AI call · Mukunda R\./)
+        await clickText(page, '.modal-foot .btn', 'Start AI call')
+        await page.waitForSelector('.ai-call .segmented')
+        await clickText(page, '.modal-foot .btn', 'Start AI call')
+
+        await page.waitForFunction(() => document.querySelectorAll('.ai-transcript .bubble').length === 1)
+        assert.match(await textOf(page, '.ai-transcript .bubble'), /an AI assistant/)
+        await page.type('[aria-label="Type a reply"]', 'Please send me a quote')
+        await page.waitForFunction(() => !document.querySelector('.ai-call form button[type=submit]').disabled)
+        await page.click('.ai-call form button[type=submit]')
+
+        // The AI says goodbye and ends the call itself; skip its speech to save time.
+        await page.waitForFunction(() => {
+          const skip = [...document.querySelectorAll('.ai-call .btn')].find((b) => b.textContent.includes('Skip'))
+          if (skip) skip.click()
+          return document.querySelector('.ai-result')
+        }, { timeout: 15000 })
+        assert.equal(await textOf(page, '.ai-outcome'), 'Quote sent')
+
+        const replies = sent.filter((b) => b.action === 'reply')
+        assert.equal(replies.length, 2)
+        assert.equal(replies[0].role, 'agent')
+        assert.equal(replies[0].lead.name, 'Mukunda R.')
+        assert.deepEqual(replies[1].turns.map((t) => t.speaker), ['ai', 'human'])
+        assert.equal(replies[1].turns[1].text, 'Please send me a quote')
+        assert.equal(sent.at(-1).action, 'summary')
+
+        await clickText(page, '.modal-foot .btn', 'Done')
+        await go(page, 'Recent')
+        const row = await page.$eval('.recent-row', (el) => el.textContent)
+        assert.match(row, /Mukunda R\..*AI call/)
+        assert.match(row, /Quote sent/)
+      } finally {
+        page.off('request', stub)
+        await page.setRequestInterception(false)
+      }
+    }],
     ['launcher: the shield opens the DPDP explainer, not a call', async () => {
       await page.click('.launcher-shield')
       await page.waitForSelector('.dpdp-list')

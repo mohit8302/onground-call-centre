@@ -69,8 +69,8 @@ export interface CallRecord {
   startedAt: string
   durationSec: number
   outcome: string
-  /** 'demo' rows come from mock data; 'live' rows were real PeerJS calls. */
-  source: 'demo' | 'live'
+  /** 'demo' rows come from mock data; 'live' rows were real PeerJS calls; 'ai' rows were AI voice calls. */
+  source: 'demo' | 'live' | 'ai'
   peerId?: string
   sopScore?: number
   sopChecks?: SopCheck[]

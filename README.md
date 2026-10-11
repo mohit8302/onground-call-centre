@@ -37,7 +37,15 @@ The E2E scripts use `puppeteer-core` with the Chrome or Edge already installed o
 4. Allow the microphone in both windows, then **Accept** in B. You now have a two-way audio call. The timer, Mute and Hang up all work.
 5. When you hang up, pick an outcome. The call appears in **Recent**, tagged to the lead, with its real duration.
 
-See [docs/CALLING_GUIDE.md](docs/CALLING_GUIDE.md) for details, troubleshooting and limitations.
+## Try an AI voice call
+
+The app also has **real AI-to-human voice calls**: you talk, Chrome transcribes, Google's Gemini model answers through the app's server, and the browser speaks the reply.
+
+1. Get a free Gemini API key from Google AI Studio (aistudio.google.com/apikey). Put it in `.env.local` as `GEMINI_API_KEY` (copy `.env.example`), or in the Vercel project's environment variables. It stays on the server.
+2. Click **AI call** in the bottom bar, log the consent answer, choose **AI calls the customer** (you play the customer) or **AI plays the customer** (you practise as the agent), then **Start AI call**.
+3. Talk when it says *Listening*, or type. Press **End call** (or let the AI say goodbye): the AI summarises the call and it's logged to **Recent** with an outcome.
+
+See [docs/CALLING_GUIDE.md](docs/CALLING_GUIDE.md) for both kinds of calling: how they work, troubleshooting and limitations.
 
 ## Screens
 
@@ -55,9 +63,10 @@ See [docs/CALLING_GUIDE.md](docs/CALLING_GUIDE.md) for details, troubleshooting 
 
 Shell: dark-green sidebar with Plan sub-items. The top bar has the OG logo, live phone status, a notification bell with dropdown, an OG Score ring (76) with rank #3, and a profile menu with **Reset demo data**. Under 860px the sidebar becomes a slide-in drawer.
 
-**Call launcher.** A floating pill at the bottom centre of every screen. It has four parts:
+**Call launcher.** A floating pill at the bottom centre of every screen. It has five parts:
 - **DEMO:** a status badge, not a button.
 - **In-app call:** first shows the **"Ask before you record"** consent step, then opens the browser phone. The step has the script in ಕನ್ನಡ / हिन्दी / English, and a "said out loud" answer is logged with a Consent ID. During a call the button skips straight to the call controls and shows the live state or timer.
+- **AI call:** the same consent step, then a real voice call with an AI (Gemini). Choose whether the AI calls you as an agent or plays the customer. See [Try an AI voice call](#try-an-ai-voice-call).
 - **Phone call:** the same consent step, then a notice that phone-number calling isn't set up, with an in-app call offered instead. It never dials anything.
 - **Shield:** opens **"How this app keeps you DPDP-safe"**, five rules with DPDP Act 2023 section references. Each rule says honestly what this build does, and which parts aren't built yet.
 
@@ -65,6 +74,7 @@ Shell: dark-green sidebar with Plan sub-items. The top bar has the OG logo, live
 
 - React 19, TypeScript, Vite 8
 - PeerJS 1.5 on top of WebRTC, for calls
+- Google Gemini API (`@google/genai`, free tier) in one server route, plus the browser's Web Speech API, for AI voice calls
 - Recharts, for the dashboard charts
 - Lucide React, for icons
 - Plain CSS with custom properties (`src/index.css` tokens, `src/App.css` components)
@@ -74,6 +84,7 @@ Shell: dark-green sidebar with Plan sub-items. The top bar has the OG logo, live
 - **React + TypeScript**, which the brief prefers. Typed lead, call and channel models catch mistakes across 8 screens.
 - **Vite**, for a fast dev server and a small static build that deploys anywhere.
 - **PeerJS**, which handles WebRTC signalling, so the effort went into call handling rather than a signalling server.
+- **Gemini free tier + browser speech** for the AI call: no cost, and the only secret is one API key kept on the server. Browser speech-to-text and text-to-speech need no extra keys.
 - **Recharts**, because its charts are React components.
 - **Plain CSS**, to keep type sizes and spacing close to the mock without a framework's defaults.
 
@@ -84,6 +95,7 @@ Shell: dark-green sidebar with Plan sub-items. The top bar has the OG logo, live
 - Every bonus item: sending messages, answering "Needs your input", Practise a call, Call back, phone-width layout, Recharts charts.
 - Extras:
   - real two-way audio calls (PeerJS/WebRTC), linked to leads and logged to Recent;
+  - real AI voice calls with Gemini, in two modes (AI agent calls you, or AI customer for practice), summarised and logged to Recent;
   - a recording-consent step and DPDP explainer;
   - localStorage persistence;
   - browser E2E tests.
@@ -91,7 +103,6 @@ Shell: dark-green sidebar with Plan sub-items. The top bar has the OG logo, live
 **Skipped or partial:**
 - Dialling real phone numbers (PSTN), which needs a telephony provider.
 - Call recording and transcription, and with them the mock's live AI assist panel during calls.
-- AI voice calling.
 - Sending the WhatsApp consent request.
 - The mock's settings menu (language, Dev Mode, Industry).
 - From the mock, not rebuilt: the top-bar search, the OG Score breakdown sheet, the Calendar share picker, and the WhatsApp customer-discussions channel.
@@ -108,7 +119,7 @@ See [docs/FEATURE_STATUS.md](docs/FEATURE_STATUS.md) for the full list and how e
   - documentation in `docs/`.
 
   I reviewed, ran and tested the code, and I can walk through any part of it. [docs/INTERVIEW_PREP.md](docs/INTERVIEW_PREP.md) has the reasoning behind the main decisions.
-- No AI model runs inside the app. AvaniBot and SOP scores are demo content from `src/data/mockData.ts`.
+- **Inside the app:** the AI voice call uses Google's Gemini API (free tier, `gemini-3.8-flash` by default), called only from the server route `api/ai-call.ts`. AvaniBot, agents and SOP scores elsewhere are demo content from `src/data/mockData.ts`.
 
 ## Project layout
 
@@ -118,10 +129,11 @@ src/
   types.ts                domain types (Lead, CallRecord, Channel, ...)
   data/mockData.ts        all demo data (written for this project)
   state/                  app state context + localStorage persistence
-  calling/                PeerJS provider, call API types, floating call dock
+  calling/                PeerJS provider, call API types, floating call dock, browser speech (aiVoice.ts)
   components/             sidebar, top bar, modals, small UI primitives
   screens/                one file per screen
   lib/                    formatting helpers, usePersistentState
+api/ai-call.ts            server route (Vercel Function) that calls Gemini; holds the API key
 e2e/                      puppeteer-core browser tests
 docs/                     architecture, walkthrough, calling guide, status
 ```
@@ -140,5 +152,6 @@ docs/                     architecture, walkthrough, calling guide, status
 - Calls use PeerJS's defaults: the free public signalling server (`0.peerjs.com`), Google STUN, and PeerJS's free public TURN relays. These are best-effort shared services with no uptime guarantee, and some strict networks may still block calls. See [CALLING_GUIDE](docs/CALLING_GUIDE.md#limitations).
 - The "customer" in a call is another browser running this app. There is no phone-network (PSTN) dialling: the **Phone call** button says so instead of pretending.
 - Recording consent is logged in the browser only. The WhatsApp consent request is shown but disabled, because WhatsApp Business isn't connected. Calls are not recorded either way. The Kannada and Hindi consent scripts should be checked by native speakers.
-- SOP scores, AvaniBot and agents are demo content. No AI model is called anywhere. The daily brief is computed from local data and says so.
+- SOP scores, AvaniBot and agents are demo content. The daily brief is computed from local data and says so. The only AI in the app is the AI voice call.
+- AI voice calls need Chrome or Edge for speech recognition (which uses the browser's own speech service), and a `GEMINI_API_KEY` on the server. It uses Gemini's free tier, which is rate-limited, and Google may use free-tier prompts to improve its products (all data here is made up). The endpoint is public, so keep the key on the free tier or set a budget on it.
 - Live calls are not recorded or transcribed, so they have no SOP checklist.

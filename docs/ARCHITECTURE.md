@@ -59,6 +59,23 @@ offline ◄── signalling lost / network error ── reconnect() ──► c
 
 [CALLING_GUIDE.md](CALLING_GUIDE.md) describes the protocol in more detail.
 
+## AI voice call
+
+The AI call is separate from `CallProvider`: there is no peer, just the browser talking to a server route.
+
+```
+AiCallModal ──► aiVoice.listenOnce (SpeechRecognition) ──► text turn
+     │                                                        │
+     │◄── aiVoice.speak (speechSynthesis) ◄── reply ◄── POST /api/ai-call ──► Gemini
+     │
+     └── on end: POST /api/ai-call {action: "summary"} ──► addCall(...) ──► Recent
+```
+
+- **The only server code.** `api/ai-call.ts` is a Vercel Function; `vite.config.ts` mounts the same handler for `dev` and `preview`. It holds the Gemini key, validates and caps the request, builds the prompt from the lead's details, and returns either the next spoken line or a JSON summary.
+- **Half-duplex turn-taking.** `AiCallModal` keeps its phase (`thinking → speaking → listening`) in a ref as well as state, because speech and network callbacks outlive renders. The mic is off while the AI speaks, so it never transcribes itself.
+- **Stateless server.** The browser sends the full transcript each turn; nothing is stored server-side.
+- **Same log.** The finished call becomes a normal `CallRecord` with `source: 'ai'`, so Recent shows it without special cases.
+
 ## Styling
 
 - `index.css` holds design tokens (`--green`, `--forest`, `--red`, …), the reset and focus styles. `App.css` holds component classes grouped by screen.
@@ -74,4 +91,6 @@ offline ◄── signalling lost / network error ── reconnect() ──► c
 | PeerJS instead of raw WebRTC | Signalling server and ICE config come free, so the work goes into call UX | Depends on a public, best-effort server |
 | `React.lazy` per screen | Recharts (~380 kB) loads only with the Dashboard; build has no chunk warnings | ~100–300 ms first visit to each screen |
 | Plain CSS | The mock is plain CSS; no extra build tooling | Class names are global, so they are kept specific |
+| AI call via a server route + browser speech | One secret, kept server-side; no audio streaming infrastructure; works on the static Vercel deploy | Speech recognition only in Chrome/Edge; half-duplex; voices vary by device |
+| Gemini free tier for the AI call | No cost for the demo | Rate limits; free-tier prompts may be used by Google (all data here is made up) |
 | E2E with `puppeteer-core` + system Chrome | Exercises real WebRTC with fake mic devices; no browser download | Needs Chrome/Edge installed; calling test needs internet |

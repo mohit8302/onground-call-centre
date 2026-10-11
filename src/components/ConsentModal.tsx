@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Check, Mic, Phone, PhoneForwarded, Send, ShieldCheck, X } from 'lucide-react'
+import { Check, Mic, Phone, PhoneForwarded, Send, ShieldCheck, Sparkles, X } from 'lucide-react'
 import { LEADS } from '../data/mockData'
 import { useAppState } from '../state/appContext'
 import { useCall } from '../calling/callContext'
@@ -33,7 +33,7 @@ function makeConsentId() {
 
 interface Props {
   /** Which kind of call the consent is for, shown under the title. */
-  channel: 'Call centre' | 'Phone call'
+  channel: 'Call centre' | 'Phone call' | 'AI call'
   onClose: () => void
   /** Moves on to the call itself (the consent step comes first), with whoever was picked here. */
   onContinue: (target?: CallTarget) => void
@@ -99,7 +99,7 @@ export default function ConsentModal({ channel, onClose, onContinue, continueLab
               onContinue(lead ? { label: lead.name, leadId: lead.id, purpose: call.target?.purpose ?? 'lead' } : call.target ?? undefined)
             }
           >
-            {channel === 'Phone call' ? <PhoneForwarded size={15} /> : <Phone size={15} />} {continueLabel}
+            {channel === 'Phone call' ? <PhoneForwarded size={15} /> : channel === 'AI call' ? <Sparkles size={15} /> : <Phone size={15} />} {continueLabel}
           </button>
         </>
       }

@@ -105,6 +105,45 @@ It needs internet access for the signalling server.
 - **One call at a time.** A second incoming call is auto-rejected with `busy`, and logged as missed.
 - The live call state is not persisted. Reloading mid-call ends the call. The other side is told via `pagehide`.
 
-## AI voice calling
+## AI voice calling (AI ↔ human)
 
-Not implemented. The core assignment came first, and a real AI voice agent needs a speech-to-text, LLM and text-to-speech pipeline with API keys. Those keys must never ship to the browser. The app does not pretend to have one: AvaniBot's daily brief is labelled as computed from local data.
+A real voice conversation between a person and an AI model (Google's Gemini, via its API). Two modes, chosen when the call starts:
+
+| Mode | Where | The AI plays | You play |
+| --- | --- | --- | --- |
+| **AI calls the customer** | Launcher → **AI call** (after the consent step) | Avani, an AI calling assistant who says it's an AI, then follows the call SOP using the lead's details | The customer |
+| **AI plays the customer** | **Practise a call → Practise with an AI customer** | The lead, with realistic objections from their history | The agent |
+
+### How it works
+
+```
+mic ──► SpeechRecognition (browser) ──► text ──► POST /api/ai-call ──► Gemini (gemini-3.8-flash)
+                                                                              │
+speakers ◄── speechSynthesis (browser) ◄── reply text ◄───────────────────────┘
+```
+
+1. **Start.** The AI speaks first: `/api/ai-call` gets the lead's details and an empty transcript and returns the opening line.
+2. **Speak.** `speechSynthesis` reads the reply sentence by sentence. The mic is off while the AI talks, so it never hears itself.
+3. **Listen.** `SpeechRecognition` (Chrome/Edge) transcribes one utterance. Interim words show live; the final text becomes your turn. You can also type a reply, or press **Skip** to cut the AI off.
+4. **Reply.** The whole transcript goes back to `/api/ai-call`, which asks Gemini for the next one to three spoken sentences.
+5. **End.** Press **End call**, or the AI ends it after saying goodbye (it appends an `[END]` marker that the server strips). A second request turns the transcript into a call-log summary and an outcome (structured JSON output), and the call is logged to **Recent** with an **AI call** tag and its real duration.
+
+### Server and key
+
+- `api/ai-call.ts` is a Vercel Function. It holds the only copy of the Gemini API key (`GEMINI_API_KEY`), validates and size-limits the request (60 turns, 600 characters each), builds the prompt and calls Gemini with Google's `@google/genai` SDK. `GEMINI_MODEL` can override the model. The browser never sees the key.
+- In `npm run dev` and `npm run preview`, a small Vite plugin in `vite.config.ts` serves the same handler at the same path, reading the key from `.env.local` (git-ignored; copy `.env.example`).
+- Requests use a low thinking level for fast replies; the summary uses JSON-schema output. If a safety filter blocks a reply, the AI ends the call politely instead of going silent. Errors come back as plain messages: no key (503), key rejected (502), free-tier rate limit hit (429).
+
+### Set it up
+
+1. Create a free API key in Google AI Studio (aistudio.google.com/apikey). Leave billing off on that project, so the key stays on the free tier and the public endpoint can't run up charges.
+2. Local: copy `.env.example` to `.env.local`, put the key in it, restart `npm run dev`.
+3. Vercel: Project → Settings → Environment Variables → add `GEMINI_API_KEY`, then redeploy.
+
+### Limits
+
+- Speech recognition needs Chrome or Edge, and those browsers send the audio to their own speech service (Google's, in Chrome). Other browsers can still type.
+- Turn-taking is half-duplex. You can't talk over the AI; press **Skip** instead.
+- Reply time is mostly the model's response time, typically a second or two. The free tier has per-minute and per-day request limits; a long call or many test calls can hit them (the app shows a "quota busy" message).
+- Voices depend on what's installed on the device. Hindi works best on devices with a Hindi voice.
+- Not on the phone network: the AI talks to a person in the browser, not to a phone number.

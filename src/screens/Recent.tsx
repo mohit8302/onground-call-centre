@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { PhoneIncoming, PhoneMissed, PhoneOutgoing, Radio } from 'lucide-react'
+import { PhoneIncoming, PhoneMissed, PhoneOutgoing, Radio, Sparkles } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { useAppState } from '../state/appContext'
 import { formatDuration, formatWhen } from '../lib/format'
@@ -47,6 +47,11 @@ export default function Recent() {
                   {c.source === 'live' && (
                     <span className="live-tag" title="A real browser call made in this session">
                       <Radio size={11} /> live
+                    </span>
+                  )}
+                  {c.source === 'ai' && (
+                    <span className="live-tag ai" title="A real voice call with the AI, made in this session">
+                      <Sparkles size={11} /> AI call
                     </span>
                   )}
                 </span>

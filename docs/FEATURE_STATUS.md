@@ -63,11 +63,23 @@ Legend:
 | Consent via WhatsApp | ❌ | Shown, but Send is disabled: WhatsApp Business isn't connected |
 | Outcome picker after a connected call | ✅ | E2E |
 
+## AI voice calling (Gemini)
+
+| Feature | Status | Verified by |
+| --- | --- | --- |
+| AI call from the launcher, after the consent step (AI agent calls you) | ✅ | E2E (consent → call → transcript → summary → Recent), with the server reply stubbed |
+| AI customer in Practise a call | ✅ | Same component, different role; manual check |
+| Speech-to-text (browser SpeechRecognition) with live interim text | ✅ | Manual, in Chrome. Headless Chrome has no speech service, so the E2E types instead |
+| Text-to-speech (browser speechSynthesis), English and Hindi | ✅ | Manual. Voices depend on the device |
+| Typed replies, Skip, Mute, End call | ✅ | E2E covers typing and ending |
+| Server route `/api/ai-call` (key server-side, input limits, typed errors) | ✅ | Manual: 503 without a key, 400 on bad input, 405 on GET; no key string in the client bundle |
+| AI summary + outcome logged to Recent with an "AI call" tag | ✅ | E2E |
+| Real Gemini replies end to end | ✅ once a key is set | Needs `GEMINI_API_KEY`; not run in the automated tests |
+
 ## Not done / out of scope
 
 | Item | Status | Note |
 | --- | --- | --- |
-| AI voice calling | ❌ | Optional. Skipped on purpose: it needs server-side API keys. Nothing in the UI pretends to have it. |
 | Call recording / transcription / live SOP scoring | ❌ | SOP checklists exist only for demo calls |
 | Real phone-network (PSTN) calls | ❌ | Needs a telephony provider |
 | Self-hosted signalling / TURN | ❌ | Uses PeerJS public defaults (see CALLING_GUIDE) |

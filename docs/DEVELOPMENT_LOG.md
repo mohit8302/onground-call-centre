@@ -87,16 +87,32 @@ A factual record of how this repository got to its current state. It is based on
 - The shield no longer changes colour.
 - E2E updated: 15/15 UI steps and 14/14 calling steps pass.
 
+### Dashboard and colour bands matched to the mock
+
+- Navy KPI hero (full width, trend pills), the green My Progress card, the brown My Tasks card with three summary rows that expand to the individual tasks, full-width bar charts with values, and "Who's waiting" and chart labels outside the cards.
+- Navy "Today's calling plan / Planner" band on the Plan screens; purple Pulse header, AvaniBot card, channel header and Leads modal header.
+- E2E task steps updated for the new My Tasks card.
+
+### AI voice calling
+
+- **Request from the reviewer:** demo calling end to end with no mocks, ideally human to human and AI to human.
+- Human to human was already real (PeerJS/WebRTC). Added **AI to human**:
+  - `api/ai-call.ts` (Vercel Function, mounted in dev/preview by `vite.config.ts`) holds the key and returns the next spoken line or a JSON summary.
+  - `aiVoice.ts` (browser speech in and out) and `AiCallModal.tsx` (turn-taking, transcript, summary, logging).
+  - Two modes: the AI calls you as an agent (launcher → AI call, after consent), or the AI plays the customer (Practise a call).
+- First built on Claude; switched to the **Gemini API free tier** so the demo costs nothing.
+- New E2E step stubs the server reply and checks consent → conversation → summary → Recent. 16/16 UI steps and 14/14 calling steps pass.
+
 ## Test runs recorded during development
 
 - `npm run lint`: 0 problems
 - `npm run build`: passes, no chunk warnings
 - `npm run test:e2e`: 12/12 UI steps and 13/13 calling steps passed on the last run before the documentation commit
 - After the launcher: 15/15 UI steps and 14/14 calling steps passed
+- After the AI call: 16/16 UI steps and 14/14 calling steps passed
 
 ## Things deliberately left out
 
-- AI voice calling (optional; needs server-side secrets)
 - URL routing
 - Unit tests
 - A self-hosted signalling server

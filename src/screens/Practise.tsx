@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
-import { CheckCircle2, Circle, Mic, MicOff, Users } from 'lucide-react'
+import { CheckCircle2, Circle, Mic, MicOff, Sparkles, Users } from 'lucide-react'
 import { PRACTICE_SCENARIOS } from '../data/mockData'
 import { useCall } from '../calling/callContext'
 import { ProgressBar, SectionHeader } from '../components/ui'
+import AiCallModal from '../components/AiCallModal'
 
 /**
  * Real microphone check: opens the mic and shows the input level using the
@@ -63,6 +64,7 @@ export default function Practise() {
   const mic = useMicLevel()
   const [scenarioId, setScenarioId] = useState(PRACTICE_SCENARIOS[0].id)
   const [checked, setChecked] = useState<string[]>([])
+  const [aiOpen, setAiOpen] = useState(false)
   const scenario = PRACTICE_SCENARIOS.find((s) => s.id === scenarioId) ?? PRACTICE_SCENARIOS[0]
 
   function pickScenario(id: string) {
@@ -141,8 +143,24 @@ export default function Practise() {
           >
             <Users size={15} /> Start practice call
           </button>
+
+          <div className="card-head spaced"><h2>3 · Practise with an AI customer</h2></div>
+          <p className="muted small">
+            A real voice call where the AI plays one of your leads and pushes back like they would. Speak, or type.
+          </p>
+          <button
+            className="btn"
+            disabled={call.status === 'in-call' || call.status === 'calling' || call.status === 'ringing'}
+            onClick={() => {
+              mic.stop() // free the mic for speech recognition
+              setAiOpen(true)
+            }}
+          >
+            <Sparkles size={15} /> Start AI practice call
+          </button>
         </section>
       </div>
+      {aiOpen && <AiCallModal initialRole="customer" onClose={() => setAiOpen(false)} />}
     </div>
   )
 }

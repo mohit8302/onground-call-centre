@@ -53,8 +53,17 @@ After a disconnect, the PeerJS server keeps an ID reserved for a while. Reusing 
 - Record and transcribe calls server-side for SOP scoring.
 - Add monitoring: call setup time, ICE failure rate.
 
-**Why not AI voice calling?**
-It was optional. Doing it properly needs a speech-to-text, LLM and text-to-speech pipeline with API keys, and those must live on a server. A browser-only version would either leak keys or be fake. I put the core assignment and real calling first.
+**How does the AI voice call work?**
+Speech-to-text and text-to-speech run in the browser (Web Speech API). Only text crosses the network: the transcript goes to `/api/ai-call`, a Vercel Function that holds the Gemini API key and asks Gemini for the next one to three spoken sentences. The AI speaks first; the mic is off while it talks so it never hears itself (half-duplex). At the end, a second request returns a JSON summary and outcome (JSON-schema output), and the call is logged to Recent. See `src/components/AiCallModal.tsx` and `api/ai-call.ts`.
+
+**Why browser speech instead of a speech API?**
+It needs no extra keys or audio streaming server, so the only secret is the Gemini key and the demo works on the static Vercel site. The cost is Chrome/Edge only for recognition (their speech service gets the audio) and device-dependent voices. In production I'd stream audio to a server-side speech-to-text and text-to-speech provider for better latency, barge-in and consistent voices.
+
+**How is the API key protected, and what stops abuse?**
+The key exists only in the server environment (`.env.local` locally, Vercel env vars in production); only `VITE_`-prefixed variables reach the bundle, and I checked the built JS for it. The route validates and caps input (60 turns, 600 characters each), uses low effort and short replies, and the key should have a spend limit. Next steps would be auth and per-user rate limits.
+
+**What would you change for AI calling in production?**
+Streaming replies (speak the first sentence while the rest generates), barge-in, server-side speech services, PSTN via a telephony provider so the AI can call real numbers, and storing the transcript against the lead for SOP scoring.
 
 ## React specifics
 
@@ -96,7 +105,8 @@ It is still logged. Closing the dock, or starting or receiving another call, flu
 
 ## Honest gaps (say these before they're asked)
 
-- No unit tests. Coverage is browser E2E (29 steps).
+- No unit tests. Coverage is browser E2E (30 steps).
 - Tested in Chrome only. Phone layouts were checked by viewport emulation, not on real phones.
 - The `offline` → Reconnect path and mic-permission-denied messages are in the code but not exercised by automated tests.
-- SOP scores, AvaniBot and agents are demo content.
+- SOP scores, AvaniBot and agents are demo content. The AI voice call is the only real AI feature.
+- AI-call speech recognition works in Chrome and Edge only, and the E2E stubs the model's reply (real replies need a key and hit free-tier rate limits).
